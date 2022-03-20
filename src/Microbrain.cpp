@@ -3,9 +3,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "mubrain.h"
+#include "Microbrain.h"
 
-Mubrain::Mubrain(bool exist_negative, bool recurrent, bool single_neuron_group) {
+Microbrain::Microbrain(bool exist_negative, bool recurrent, bool single_neuron_group) {
 	this->exist_negative = exist_negative;
 	this->recurrent = recurrent;
 	this->single_neuron_group = single_neuron_group;
@@ -36,7 +36,7 @@ Mubrain::Mubrain(bool exist_negative, bool recurrent, bool single_neuron_group) 
 	}
 }
 
-Mubrain::~Mubrain() {
+Microbrain::~Microbrain() {
 	if (single_neuron_group) {
 		delete [] grid_input;
 		delete [] grid_layer1;
@@ -61,7 +61,7 @@ Mubrain::~Mubrain() {
 	}
 }
 
-void Mubrain::setupNeurons(CARLsim &sim) {
+void Microbrain::setupNeurons(CARLsim &sim) {
 	if (single_neuron_group) {
 		// input
 		std::string ginput_name = "data_input_";
@@ -150,24 +150,24 @@ void Mubrain::setupNeurons(CARLsim &sim) {
 	}
 }
 
-void Mubrain::Synapse::setValue(int c, float w) {
+void Microbrain::Synapse::setValue(int c, float w) {
 	connection = c;
 	weight = w;
 }
 
-float Mubrain::Synapse::setWeight(float w) {
+float Microbrain::Synapse::setWeight(float w) {
 	return weight = w;
 }
 
-void Mubrain::SynapseGroup::setConnectionValue(int c){
+void Microbrain::SynapseGroup::setConnectionValue(int c){
 	connection = c;
 }
 
-float Mubrain::SynapseGroup::setWeight(int x, int y, float w) {
+float Microbrain::SynapseGroup::setWeight(int x, int y, float w) {
 	return weight[x][y] = w;
 }
 
-void Mubrain::setupConnections(CARLsim &sim) {
+void Microbrain::setupConnections(CARLsim &sim) {
 	if (single_neuron_group) {
 		// input to layer1
 		for (int i = 0; i < NUM_NEURON_LAYER1; ++ i)
@@ -201,7 +201,7 @@ void Mubrain::setupConnections(CARLsim &sim) {
 	}
 }
 
-void Mubrain::loadWeight(CARLsim &sim, std::string &model_name, std::vector<int> &dim) {
+void Microbrain::loadWeight(CARLsim &sim, std::string &model_name, std::vector<int> &dim) {
 	std::string dir = "model/Models/" + model_name + "/";
 	
 	// todo: throw some error here
@@ -284,7 +284,7 @@ void Mubrain::loadWeight(CARLsim &sim, std::string &model_name, std::vector<int>
 }
 
 // todo: add more function
-void Mubrain::loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int index, PoissonRate &in) {
+void Microbrain::loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int index, PoissonRate &in) {
 	float input_cnt = 0.0f;
 	std::ifstream fin("model/Datasets/" + dataset_name + "/input.txt");
 	for (int i = 0; i < dim * index; ++ i)
@@ -312,7 +312,7 @@ void Mubrain::loadInput(CARLsim &sim, std::string &dataset_name, float *input_ma
 	//std::cout << input_cnt << std::endl;
 }
 
-float Mubrain::testAccuracy(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int num_case, PoissonRate &in) {
+float Microbrain::testAccuracy(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int num_case, PoissonRate &in) {
 	float correct_case = 0;
 	std::ifstream fin("model/Datasets/" + dataset_name + "/input.txt");
 	std::ifstream fin_res("model/Datasets/" + dataset_name + "/output.txt");
@@ -351,7 +351,7 @@ float Mubrain::testAccuracy(CARLsim &sim, std::string &dataset_name, float *inpu
 }
 
 
-std::vector < std::vector <int> > Mubrain::getResults(bool print_result) {
+std::vector < std::vector <int> > Microbrain::getResults(bool print_result) {
 	result_monitor->stopRecording();
 	std::vector < std::vector <int> > result_vector = result_monitor->getSpikeVector2D();
 	if (print_result) {
@@ -363,14 +363,3 @@ std::vector < std::vector <int> > Mubrain::getResults(bool print_result) {
 	return result_vector;
 }
 
-void printInMat(float *input_matrix) {
-	for (int i = 0; i < NUM_NEURON_LAYER1; ++ i) {
-		if (i % 16 == 0)
-			std::cout << std::endl;
-		if (input_matrix[i] < 0.5)
-			std::cout << "  ";
-		else
-			std::cout << "* ";
-	}
-	std::cout << std::endl;
-}

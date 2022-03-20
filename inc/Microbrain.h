@@ -1,6 +1,5 @@
-
-#ifndef _MUBRAIN_H
-#define _MUBRAIN_H
+#ifndef _MICROBRAIN_H
+#define _MICROBRAIN_H
 
 #define NUM_NEURON_LAYER1 256
 #define NUM_NEURON_LAYER2 64
@@ -8,10 +7,10 @@
 
 #define EPS 1e-8
 
-class Mubrain {
+class Microbrain {
 	public:
-		Mubrain(bool no_negative = true, bool recurrent = false, bool single_neuron_group = true);
-		~Mubrain();
+		Microbrain(bool no_negative = true, bool recurrent = false, bool single_neuron_group = true);
+		~Microbrain();
 
 		void setupNeurons(CARLsim &sim);
 		void setupConnections(CARLsim &sim);
@@ -86,6 +85,5 @@ class Mubrain {
 		SpikeMonitor * result_monitor;
 };
 
-void printInMat(float *input_matrix);
 
 #endif
