@@ -22,17 +22,19 @@ void senderFunc(int msg_id, std::string& model_name, std::string& dataset_name, 
 		int output_val = network_input.getOutput();
 		// tuple weight, input, output
 		Controller::PayloadMatrix payload(weight, input_matrix, output_val);
+		//std::cout << "sender" << msg_id << " " << i << std::endl;
 		msg_que.put(DataMessage <Controller::PayloadMatrix>(msg_id, payload));
 	}
 }
 
-void receiverFunc(int num_sender, int count, std::vector <MessageQueue> msg_que_list) {
+void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que_list) {
 	// round robin
 	for (int i = 0; i < count; ++ i)
 		for (int j = 0; j < num_sender; ++ j) {
-			auto msg = msg_que_list[i].get();
+			//std::cout << "receiver " << i << " " << j << std::endl;
+			auto msg = msg_que_list[j].get();
 			auto& datamsg = dynamic_cast<DataMessage<Controller::PayloadMatrix>&>(*msg);
-			std::cout << datamsg.getPayload().output_val << std::endl;
+			//std::cout << datamsg.getPayload().output_val << std::endl;
 		}
 }
 

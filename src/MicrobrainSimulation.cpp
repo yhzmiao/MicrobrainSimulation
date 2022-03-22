@@ -26,8 +26,8 @@ int main() {
 	std::string dataset_name = "MNIST";
 	std::string model_name = "MNIST_positive";
 
-	Controller controller(2);
-	controller.run(dataset_name, model_name, 5);
+	Controller controller(3);
+	controller.run(model_name, dataset_name, 5);
 	return 0;
 
 
