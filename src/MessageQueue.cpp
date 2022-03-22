@@ -11,6 +11,10 @@
 MessageQueue::MessageQueue(): msg_que(), que_lock(), que_condition(), response_map(), map_lock() {}
 MessageQueue::~MessageQueue() {}
 
+std::unique_ptr<MessageQueue> MessageQueue::move(){
+	return std::unique_ptr<MessageQueue>(new MessageQueue(std::move(*this)));
+}
+
 void MessageQueue::put(Message&& msg) {
 	// lock and push
 	{

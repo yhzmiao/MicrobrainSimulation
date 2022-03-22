@@ -1,8 +1,16 @@
+#include <vector>
+#include <iostream>
+#include <memory>
+#include <condition_variable>
+#include <map>
+#include <queue>
+#include <thread>
+#include <fstream>
+
 #include "NetworkModel.h"
 
-NetworkModel::NetworkModel(std::string mn) {
+NetworkModel::NetworkModel(std::string &model_name): model_name(model_name) {
 	// get information from the file
-	model_name = mn
 	std::string dir = "model/Models/" + model_name + "/";
 
 	dim.resize(3);
@@ -44,6 +52,7 @@ NetworkInput::NetworkInput(std::string dataset_name) {
 	fin_info >> input_dim;
 	fin_info >> input_size;
 	fin_info.close();
+	input_matrix.resize(input_dim);
 }
 
 NetworkInput::~NetworkInput() {
@@ -52,7 +61,6 @@ NetworkInput::~NetworkInput() {
 }
 
 std::vector <float>& NetworkInput::getInputMatrix() {
-	vector <float> input_matrix(input_dim);
 	for (int i = 0; i < input_dim; ++ i)
 		fin_input >> input_matrix[i];
 	return input_matrix;
@@ -65,6 +73,6 @@ int NetworkInput::getOutput() {
 }
 
 
-std::pair <int, int> getInputInfo() {
+std::pair <int, int> NetworkInput::getInputInfo() {
 	return std::make_pair(input_dim, input_size);
 }

@@ -12,16 +12,23 @@
 #include <map>
 #include <queue>
 #include <condition_variable>
+#include <fstream>
 
 #include "Microbrain.h"
 #include "Message.h"
 #include "MessageQueue.h"
 #include "Tester.h"
 #include "NetworkModel.h"
+#include "Controller.h"
 
 int main() {
 	// keep track of execution time
-	
+	std::string dataset_name = "MNIST";
+	std::string model_name = "MNIST_positive";
+
+	Controller controller(2);
+	controller.run(dataset_name, model_name, 5);
+	return 0;
 
 
 	Stopwatch watch;
@@ -32,8 +39,6 @@ int main() {
 	// create a network on GPU
 	int numGPUs = 1;
 	int randSeed = 42;
-	std::string dataset_name = "MNIST";
-	std::string model_name = "MNIST_positive";
 	std::vector <int> dim = {256, 64, 10};
 	bool single_neuron_group = false;
 

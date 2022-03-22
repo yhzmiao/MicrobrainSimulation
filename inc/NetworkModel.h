@@ -11,7 +11,7 @@ class NetworkModel {
 	private:
 		std::string model_name;
 		std::vector <int> dim;
-		std::vector <std::vector <std::vector <float> > > weight1; // [0,1] i j
+		std::vector <std::vector <std::vector <float> > > weight; // [0,1] i j
 };
 
 class NetworkInput {
@@ -27,6 +27,7 @@ class NetworkInput {
 		std::ifstream fin_input;
 		std::ifstream fin_output;
 		int input_dim, input_size;
-}
+		std::vector <float> input_matrix;
+};
 
 #endif

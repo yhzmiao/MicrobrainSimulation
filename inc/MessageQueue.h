@@ -14,6 +14,10 @@ class MessageQueue {
 		//std::unique_ptr<Message> request(Message&& msg);
 		//bool respondTo(MsgUID req_uid, Message&& response_msg);
 
+		MessageQueue(const MessageQueue& msg_que){};
+		MessageQueue& operator=(const MessageQueue& msg_que){};
+		std::unique_ptr<MessageQueue> move();
+
 		struct Request {
 			Request () {};
 
