@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <ctime>
 
 #include "Microbrain.h"
 
@@ -286,8 +287,9 @@ void Microbrain::loadWeight(CARLsim &sim, std::string &model_name, std::vector<i
 void Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight) {
 	unsigned long int dim[3] = {weight[0].size(), weight[0][0].size(), weight[1][0].size()};
 	//std::cout << dim[0] << " " << dim[1] << " " << dim[2] << std::endl;
-
-	//if (dim[0] != 0 && dim[1] != 0) {
+	time_t begin_load, end_load;
+	begin_load = clock();
+	if (dim[0]&& dim[1])
 		for (int i = 0; i < NUM_NEURON_LAYER1; ++ i)
 			for (int j = 0; j < NUM_NEURON_LAYER2; ++ j) {
 				
@@ -309,7 +311,6 @@ void Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector 
 					sim.setWeight(layer1_in_to_layer2_in_all.connection, i, j, -syn_weight, true);
 				}
 			}
-	//}
 	std::cout << "Finished first part!" << std::endl;
 	if (dim[1] && dim[2])
 		for (int i = 0; i < NUM_NEURON_LAYER2; ++ i)
@@ -326,6 +327,8 @@ void Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector 
 					sim.setWeight(layer2_in_to_layer3_all.connection, i, j, -syn_weight, true);
 				}
 			}
+	end_load = clock();
+	std::cout << "Loading time: " << (double)(end_load - begin_load) / CLOCKS_PER_SEC << std::endl;
 }
 
 // todo: add more function

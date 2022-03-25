@@ -6,6 +6,7 @@
 #include <queue>
 #include <thread>
 #include <fstream>
+#include <ctime>
 #include <carlsim.h>
 
 #include "Microbrain.h"
@@ -35,8 +36,10 @@ void senderFunc(int msg_id, std::string& model_name, std::string& dataset_name, 
 
 void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que_list, Microbrain &microbrain, CARLsim &sim, PoissonRate &in) {
 	// round robin
+	time_t begin_run, end_run;
 	for (int i = 0; i < count; ++ i)
 		for (int j = 0; j < num_sender; ++ j) {
+			begin_run = clock();
 			//std::cout << "receiver " << i << " " << j << std::endl;
 			auto msg = msg_que_list[j].get();
 			auto& datamsg = dynamic_cast<DataMessage<Controller::PayloadMatrix>&>(*msg);
@@ -46,6 +49,8 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 			float input_cnt = microbrain.loadInput(sim, payload.input_matrix);
 			std::cout << "Receiver:" << std::endl << "\tSender ID: " << j << " Order: " << i;
 			std::cout << " Expected Value: " << payload.output_val << " Result: " << microbrain.testResult(sim, in, input_cnt) << std::endl;
+			end_run = clock();
+			std::cout << "Running time: " << (double)(end_run - begin_run) / CLOCKS_PER_SEC << std::endl;
 		}
 }
 
