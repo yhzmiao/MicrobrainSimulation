@@ -25,8 +25,11 @@ NetworkModel::NetworkModel(std::string &model_name): model_name(model_name) {
 	weight[0].resize(dim[0]);
 	for (int i = 0; i < dim[0]; ++ i) {
 		weight[0][i].resize(dim[1]);
-		for (int j = 0; j < dim[1]; ++ j)
+		for (int j = 0; j < dim[1]; ++ j) {
 			fin_w1 >> weight[0][i][j];
+			//std::cout << weight[0][i][j] << " ";
+		}
+		//std::cout << std::endl;
 	}
 	fin_w1.close();
 
@@ -62,7 +65,7 @@ NetworkInput::~NetworkInput() {
 }
 
 std::vector <float>& NetworkInput::getInputMatrix() {
-	//std::cout << input_dim << std::endl;
+	std::cout << input_dim << std::endl;
 	for (int i = 0; i < input_dim; ++ i) {
 		fin_input >> input_matrix[i];
 		//std::cout << input_matrix[i];

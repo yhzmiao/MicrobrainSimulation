@@ -283,6 +283,51 @@ void Microbrain::loadWeight(CARLsim &sim, std::string &model_name, std::vector<i
 	}
 }
 
+void Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight) {
+	unsigned long int dim[3] = {weight[0].size(), weight[0][0].size(), weight[1][0].size()};
+	//std::cout << dim[0] << " " << dim[1] << " " << dim[2] << std::endl;
+
+	//if (dim[0] != 0 && dim[1] != 0) {
+		for (int i = 0; i < NUM_NEURON_LAYER1; ++ i)
+			for (int j = 0; j < NUM_NEURON_LAYER2; ++ j) {
+				
+				float syn_weight = 0.0f;
+				if (i < dim[0] && j < dim[1]) {
+					//std::cout << i << " " << j << " " << weight[0][i][j] << std::endl;
+					syn_weight = weight[0][i][j];
+				}
+				if (syn_weight > -EPS) {
+					sim.setWeight(layer1_ex_to_layer2_ex_all.connection, i, j, syn_weight, true);
+					sim.setWeight(layer1_ex_to_layer2_in_all.connection, i, j, syn_weight, true);
+					sim.setWeight(layer1_in_to_layer2_ex_all.connection, i, j, 0.0f, true);
+					sim.setWeight(layer1_in_to_layer2_in_all.connection, i, j, 0.0f, true);
+				}
+				else {
+					sim.setWeight(layer1_ex_to_layer2_ex_all.connection, i, j, 0.0f, true);
+					sim.setWeight(layer1_ex_to_layer2_in_all.connection, i, j, 0.0f, true);
+					sim.setWeight(layer1_in_to_layer2_ex_all.connection, i, j, -syn_weight, true);
+					sim.setWeight(layer1_in_to_layer2_in_all.connection, i, j, -syn_weight, true);
+				}
+			}
+	//}
+	std::cout << "Finished first part!" << std::endl;
+	if (dim[1] && dim[2])
+		for (int i = 0; i < NUM_NEURON_LAYER2; ++ i)
+			for (int j = 0; j < NUM_NEURON_LAYER3; ++ j) {
+				float syn_weight = 0.0f;
+				if (i < dim[1] && j < dim[2])
+					syn_weight = weight[1][i][j];
+				if (syn_weight > -EPS) {
+					sim.setWeight(layer2_ex_to_layer3_all.connection, i, j, syn_weight, true);
+					sim.setWeight(layer2_in_to_layer3_all.connection, i, j, 0.0f, true);
+				}
+				else {
+					sim.setWeight(layer2_ex_to_layer3_all.connection, i, j, 0.0f, true);
+					sim.setWeight(layer2_in_to_layer3_all.connection, i, j, -syn_weight, true);
+				}
+			}
+}
+
 // todo: add more function
 void Microbrain::loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int index, PoissonRate &in) {
 	float input_cnt = 0.0f;
@@ -311,6 +356,43 @@ void Microbrain::loadInput(CARLsim &sim, std::string &dataset_name, float *input
 	}
 	//std::cout << input_cnt << std::endl;
 }
+
+
+float Microbrain::loadInput(CARLsim &sim, std::vector <float> &input_matrix) {
+	int dim = input_matrix.size();
+	float input_cnt = 0.0f;
+
+	for (int i = 0; i < dim; ++ i) {
+		input_cnt += input_matrix[i];
+		if (i % 16 == 0)
+			std::cout << std::endl;
+		std::cout << (input_matrix[i]>0.5f?"*":" ") << " ";
+		float conn_weight = input_matrix[i] * 10.0f;
+		sim.setWeight(input_to_layer1_ex_all.connection, i, i, conn_weight, true);
+		sim.setWeight(input_to_layer1_in_all.connection, i, i, conn_weight, true);
+	}
+	std::cout << std::endl;
+}
+
+int Microbrain::testResult(CARLsim &sim, PoissonRate &in, float input_cnt) {
+	result_monitor->startRecording();
+	in.setRates(40000.0f / input_cnt);
+	sim.setSpikeRate(ginput_all, &in);
+	sim.runNetwork(0, 100);
+	result_monitor->stopRecording();
+
+	std::vector < std::vector <int> > result_vector = result_monitor->getSpikeVector2D();
+	int max_num_spike = 0, max_spike_id;
+	for (int i = 0; i < result_vector.size(); ++ i) {
+		std::cout << i << " " << result_vector[i].size() << std::endl;
+		if (result_vector[i].size() > max_num_spike) {
+			max_num_spike = result_vector[i].size();
+			max_spike_id = i;
+		}
+	}
+	return max_spike_id;
+}
+
 
 float Microbrain::testAccuracy(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int num_case, PoissonRate &in) {
 	float correct_case = 0;

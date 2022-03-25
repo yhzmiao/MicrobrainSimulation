@@ -9,15 +9,21 @@
 
 class Microbrain {
 	public:
-		Microbrain(bool no_negative = true, bool recurrent = false, bool single_neuron_group = true);
+		Microbrain(bool no_negative = true, bool recurrent = false, bool single_neuron_group = false);
 		~Microbrain();
 
 		void setupNeurons(CARLsim &sim);
 		void setupConnections(CARLsim &sim);
+
 		void loadWeight(CARLsim &sim, std::string &model_name, std::vector<int> &dim);
+		void loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight);
+
 		void loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix,int dim, int index, PoissonRate &in);
+		float loadInput(CARLsim &sim, std::vector <float> &input_matrix);
+
 		std::vector < std::vector <int> > getResults(bool print_result = true);
 		float testAccuracy(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int num_case, PoissonRate &in);
+		int testResult(CARLsim &sim, PoissonRate &in, float input_cnt);
 
 		struct Synapse {
 			int connection;
