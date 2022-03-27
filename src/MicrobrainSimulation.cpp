@@ -33,8 +33,8 @@ int main() {
 	// create a network on GPU
 	int numGPUs = 1;
 	int randSeed = 42;
-	std::string dataset_name = "MNIST";
-	std::string model_name = "MNIST_negative";
+	std::vector<std::string> dataset_name = {"MNIST", "MNIST", "MNIST"};
+	std::vector<std::string> model_name = {"MNIST_negative", "MNIST_positive", "MNIST_negative"};
 	std::vector <int> dim = {256, 64, 10};
 	bool single_neuron_group = false;
 
@@ -69,7 +69,7 @@ int main() {
 	// n = 10000 94.42
 
 	// initialize with the number of sender
-	Controller controller(1);
+	Controller controller(3);
 	controller.run(model_name, dataset_name, 10, microbrain, sim, in);
 	
 	//for (int i=0; i<3; i++) {

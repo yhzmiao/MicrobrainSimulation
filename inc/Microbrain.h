@@ -16,7 +16,7 @@ class Microbrain {
 		void setupConnections(CARLsim &sim);
 
 		void loadWeight(CARLsim &sim, std::string &model_name, std::vector<int> &dim);
-		void loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight);
+		double loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight);
 
 		void loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix,int dim, int index, PoissonRate &in);
 		float loadInput(CARLsim &sim, std::vector <float> &input_matrix);

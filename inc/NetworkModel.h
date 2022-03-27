@@ -3,7 +3,7 @@
 
 class NetworkModel {
 	public:
-		NetworkModel(std::string& model_name);
+		NetworkModel(std::string model_name);
 		~NetworkModel() = default;
 
 		// get weight by reference

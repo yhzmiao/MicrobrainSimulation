@@ -284,7 +284,7 @@ void Microbrain::loadWeight(CARLsim &sim, std::string &model_name, std::vector<i
 	}
 }
 
-void Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight) {
+double Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight) {
 	unsigned long int dim[3] = {weight[0].size(), weight[0][0].size(), weight[1][0].size()};
 	//std::cout << dim[0] << " " << dim[1] << " " << dim[2] << std::endl;
 	time_t begin_load, end_load;
@@ -311,7 +311,7 @@ void Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector 
 					sim.setWeight(layer1_in_to_layer2_in_all.connection, i, j, -syn_weight, true);
 				}
 			}
-	std::cout << "Finished first part!" << std::endl;
+	//std::cout << "Finished first part!" << std::endl;
 	if (dim[1] && dim[2])
 		for (int i = 0; i < NUM_NEURON_LAYER2; ++ i)
 			for (int j = 0; j < NUM_NEURON_LAYER3; ++ j) {
@@ -328,7 +328,9 @@ void Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vector 
 				}
 			}
 	end_load = clock();
-	std::cout << "Loading time: " << (double)(end_load - begin_load) / CLOCKS_PER_SEC << std::endl;
+	double ret_time = (double)(end_load - begin_load) / CLOCKS_PER_SEC;
+	std::cout << "Loading time: " << ret_time << std::endl;
+	return ret_time;
 }
 
 // todo: add more function
@@ -386,8 +388,12 @@ int Microbrain::testResult(CARLsim &sim, PoissonRate &in, float input_cnt) {
 
 	std::vector < std::vector <int> > result_vector = result_monitor->getSpikeVector2D();
 	int max_num_spike = 0, max_spike_id;
+	std::cout << "Output Spike";
+	for (int i = 0; i < result_vector.size(); ++ i)
+		std::cout << "\t" << i;
+	std::cout << std::endl << "Num of Spike";
 	for (int i = 0; i < result_vector.size(); ++ i) {
-		std::cout << i << " " << result_vector[i].size() << std::endl;
+		std::cout << "\t" << result_vector[i].size();
 		if (result_vector[i].size() > max_num_spike) {
 			max_num_spike = result_vector[i].size();
 			max_spike_id = i;

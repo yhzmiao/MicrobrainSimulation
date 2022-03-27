@@ -9,7 +9,7 @@
 
 #include "NetworkModel.h"
 
-NetworkModel::NetworkModel(std::string &model_name): model_name(model_name) {
+NetworkModel::NetworkModel(std::string model_name): model_name(model_name) {
 	// get information from the file
 	std::string dir = "model/Models/" + model_name + "/";
 
@@ -65,7 +65,7 @@ NetworkInput::~NetworkInput() {
 }
 
 std::vector <float>& NetworkInput::getInputMatrix() {
-	std::cout << input_dim << std::endl;
+	//std::cout << input_dim << std::endl;
 	for (int i = 0; i < input_dim; ++ i) {
 		fin_input >> input_matrix[i];
 		//std::cout << input_matrix[i];

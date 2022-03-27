@@ -7,21 +7,24 @@ class Controller {
 		Controller(int num_sender);
 		~Controller() = default;
 
-		void run(std::string &model_name, std::string &dataset_name, int count, Microbrain &microbrain, CARLsim &sim, PoissonRate &in);
+		void run(std::vector<std::string> &model_name, std::vector<std::string> &dataset_name, int count, Microbrain &microbrain, CARLsim &sim, PoissonRate &in);
 
 		struct PayloadMatrix {
-			std::vector <std::vector <std::vector <float> > > weight;
+			//std::vector <std::vector <std::vector <float> > > weight;
+			std::string model_name;
 			std::vector <float> input_matrix;
 			int output_val;
 			PayloadMatrix(
-				std::vector <std::vector <std::vector <float> > > &weight,
+				//std::vector <std::vector <std::vector <float> > > &weight,
+				std::string model_name,
 				std::vector <float> &input_matrix, 
 				int output_val):
-				weight(weight),
+				//weight(weight),
+				model_name(model_name),
 				input_matrix(input_matrix),
 				output_val(output_val){}
 			
-			PayloadMatrix(const PayloadMatrix &pl): weight(pl.weight), input_matrix(pl.input_matrix), output_val(pl.output_val) 
+			PayloadMatrix(const PayloadMatrix &pl): model_name(pl.model_name), input_matrix(pl.input_matrix), output_val(pl.output_val) 
 			{};
 
 			
