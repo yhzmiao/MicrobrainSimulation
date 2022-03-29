@@ -1,0 +1,1 @@
+./ext --conn-file ../test_apps/tensorflow/RespClass/application/ANNDVT.connection_info.txt --spike-file ../test_apps/tensorflow/RespClass/application/ANNDVT.weight_info.txt --unroll-fanin 64 --cluster-crossbar-size 64 --clustering-algo min-clusters --unroll-ir-out ir_out.txt --unroll-parent-out parent_out.txt --cluster-stats cluster_stats.txt --cluster-ir-out cluster_ir_out.txt

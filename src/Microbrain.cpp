@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <cstring>
 #include <ctime>
 
 #include "Microbrain.h"
@@ -59,6 +60,10 @@ Microbrain::~Microbrain() {
 		for (int i = 0; i < (NUM_NEURON_LAYER2 << exist_negative); ++ i)
 			delete [] layer2_to_layer3[i];
 		delete [] layer2_to_layer3;
+
+		for (int i = 0; i < weight_pointer_list.size(); ++ i)
+			for (int j = 0; j < 6; ++ j)
+				delete [] weight_pointer_list[i][j];
 	}
 }
 
@@ -331,6 +336,68 @@ double Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vecto
 	double ret_time = (double)(end_load - begin_load) / CLOCKS_PER_SEC;
 	std::cout << "Loading time: " << ret_time << std::endl;
 	return ret_time;
+}
+
+double Microbrain::loadWeight(CARLsim &sim, int model_id) {
+	//std::cout << "Start loading!" << std::endl;
+	time_t begin_load, end_load;
+	begin_load = clock();
+
+	float *tmp_pointer;
+	tmp_pointer = new float[weight_size];
+	memcpy(tmp_pointer, weight_pointer_list[model_id][0], sizeof(float) * weight_size);
+	sim.replaceWeight(layer1_ex_to_layer2_ex_all.connection, tmp_pointer);
+	tmp_pointer = new float[weight_size];
+	memcpy(tmp_pointer, weight_pointer_list[model_id][1], sizeof(float) * weight_size);
+	sim.replaceWeight(layer1_ex_to_layer2_in_all.connection, tmp_pointer);
+	tmp_pointer = new float[weight_size];
+	memcpy(tmp_pointer, weight_pointer_list[model_id][2], sizeof(float) * weight_size);
+	sim.replaceWeight(layer1_in_to_layer2_ex_all.connection, tmp_pointer);
+	tmp_pointer = new float[weight_size];
+	memcpy(tmp_pointer, weight_pointer_list[model_id][3], sizeof(float) * weight_size);
+	sim.replaceWeight(layer1_in_to_layer2_in_all.connection, tmp_pointer);
+
+	
+	tmp_pointer = new float[weight_size];
+	memcpy(tmp_pointer, weight_pointer_list[model_id][4], sizeof(float) * weight_size);
+	sim.replaceWeight(layer2_ex_to_layer3_all.connection, tmp_pointer);
+	tmp_pointer = new float[weight_size];
+	memcpy(tmp_pointer, weight_pointer_list[model_id][5], sizeof(float) * weight_size);
+	sim.replaceWeight(layer2_ex_to_layer3_all.connection, tmp_pointer);
+
+	end_load = clock();
+	double ret_time = (double)(end_load - begin_load) / CLOCKS_PER_SEC;
+	std::cout << "Loading time: " << ret_time << std::endl;
+	return ret_time;
+}
+
+void Microbrain::saveWeightPointer(CARLsim &sim) {
+	std::pair <float *, int> pointer_pair;
+	std::vector <float *> weight_pointer(6, nullptr);
+
+	pointer_pair = sim.getWeightData(layer1_ex_to_layer2_ex_all.connection);
+	weight_pointer[0] = new float[pointer_pair.second];
+	memcpy(weight_pointer[0], pointer_pair.first, sizeof(float) * pointer_pair.second);
+	pointer_pair = sim.getWeightData(layer1_ex_to_layer2_in_all.connection);
+	weight_pointer[1] = new float[pointer_pair.second];
+	memcpy(weight_pointer[1], pointer_pair.first, sizeof(float) * pointer_pair.second);
+	pointer_pair = sim.getWeightData(layer1_in_to_layer2_ex_all.connection);
+	weight_pointer[2] = new float[pointer_pair.second];
+	memcpy(weight_pointer[2], pointer_pair.first, sizeof(float) * pointer_pair.second);
+	pointer_pair = sim.getWeightData(layer1_in_to_layer2_in_all.connection);
+	weight_pointer[3] = new float[pointer_pair.second];
+	memcpy(weight_pointer[3], pointer_pair.first, sizeof(float) * pointer_pair.second);
+
+
+	pointer_pair = sim.getWeightData(layer2_ex_to_layer3_all.connection);
+	weight_pointer[4] = new float[pointer_pair.second];
+	memcpy(weight_pointer[4], pointer_pair.first, sizeof(float) * pointer_pair.second);
+	pointer_pair = sim.getWeightData(layer2_ex_to_layer3_all.connection);
+	weight_pointer[5] = new float[pointer_pair.second];
+	memcpy(weight_pointer[5], pointer_pair.first, sizeof(float) * pointer_pair.second);
+
+	weight_size = pointer_pair.second;
+	weight_pointer_list.emplace_back(weight_pointer);
 }
 
 // todo: add more function

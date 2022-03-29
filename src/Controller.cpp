@@ -53,15 +53,20 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 			Controller::PayloadMatrix payload = datamsg.getPayload();
 			it = model_map.find(payload.model_name);
 			int model_id = 0;
+			double loading_time = 0;
 			if (it == model_map.end()) {
 				model_id = model_list.size();
 				model_map.insert(make_pair(payload.model_name, model_id));
 				model_list.emplace_back(NetworkModel(payload.model_name));
+				loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
+				microbrain.saveWeightPointer(sim);
 			}
-			else
+			else {
 				model_id = it->second;
+				loading_time = microbrain.loadWeight(sim, model_id);
+			}
 
-			double loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
+			//loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
 			std::cout << "Loaded Weight!" << std::endl;
 			float input_cnt = microbrain.loadInput(sim, payload.input_matrix);
 			std::cout << "Receiver:" << std::endl << "\tSender ID: " << j << " Order: " << i;
