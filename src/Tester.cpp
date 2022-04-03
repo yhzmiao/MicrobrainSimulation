@@ -5,12 +5,14 @@
 #include <queue>
 #include <map>
 #include <thread>
+#include <fstream>
 #include <vector>
 #include <carlsim.h>
 
 #include "Message.h"
 #include "MessageQueue.h"
 #include "Microbrain.h"
+#include "NetworkModel.h"
 
 void printInMat(float *input_matrix) {
 	for (int i = 0; i < NUM_NEURON_LAYER1; ++ i) {
@@ -50,4 +52,21 @@ void testMessageQueue() {
     t1.join();
     t2.join();
     t3.join();
+}
+
+void testUnrolling(std::string model_name, int num_connection) {
+    NetworkModel nm(model_name);
+    nm.networkUnrolling(num_connection);
+    std::vector<Neuron> neuron_list = nm.getNeuronList();
+
+    std::cout << std::endl << neuron_list.size() << std::endl;
+    /*
+    for (auto &neuron: neuron_list) {
+        std::cout << neuron.getNeuronId() << " ";
+        std::vector<int> output_neuron = neuron.getOutput();
+        for (auto out: output_neuron)
+            std::cout << out << " ";
+        std::cout << std::endl;
+    }
+    */
 }

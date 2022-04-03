@@ -23,7 +23,9 @@
 
 int main() {
 	// keep track of execution time
-
+	//std::string name = "MNIST_largescale";
+	//testUnrolling(name, 64);
+	//return 0;
 
 	Stopwatch watch;
 	
@@ -33,7 +35,7 @@ int main() {
 	// create a network on GPU
 	int numGPUs = 1;
 	int randSeed = 42;
-	std::vector<std::string> dataset_name = {"MNIST", "MNIST", "MNIST"};
+	std::vector<std::string> dataset_name = {"MNIST_16", "MNIST_16", "MNIST_16"};
 	std::vector<std::string> model_name = {"MNIST_negative", "MNIST_positive", "MNIST_negative"};
 	std::vector <int> dim = {256, 64, 10};
 	bool single_neuron_group = false;

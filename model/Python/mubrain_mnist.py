@@ -84,7 +84,7 @@ def main():
         train=True,
         download=True,
         transform=torchvision.transforms.Compose([
-            torchvision.transforms.Resize(16),
+            torchvision.transforms.Resize(32),
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(
                 (0.1307,), (0.3081,))
@@ -95,7 +95,7 @@ def main():
         train=False,
         download=True,
         transform=torchvision.transforms.Compose([
-            torchvision.transforms.Resize(16),
+            torchvision.transforms.Resize(32),
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(
                 (0.1307,), (0.3081,))
@@ -116,8 +116,11 @@ def main():
     # 定义并初始化网络
     net = nn.Sequential(
         nn.Flatten(),
-        nn.Linear(16 * 16, 64, bias=False), # layer1
+        nn.Linear(32 * 32, 256, bias=False), # layer1
         # PositiveLinear(16 * 16, 64),
+        neuron.LIFNode(tau=tau),
+        nn.Linear(16 * 16, 8 * 8, bias=False),
+        # PositiveLinear(8 * 8, 10),
         neuron.LIFNode(tau=tau),
         nn.Linear(8 * 8, 10, bias=False),
         # PositiveLinear(8 * 8, 10),
