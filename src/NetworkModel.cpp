@@ -7,6 +7,7 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include <random>
 
 #include "NetworkModel.h"
 
@@ -23,6 +24,7 @@ Neuron::Neuron(int neuron_id, std::vector<int> output_neuron, std::vector<float>
 	for (int i = 0; i < output_neuron.size(); ++ i) {
 		output_synapse[output_neuron[i]] = weight[i];
 	}
+	input_settled = false;
 }
 
 NetworkModel::NetworkModel(std::string model_name): model_name(model_name) {
@@ -163,11 +165,182 @@ void NetworkModel::networkUnrolling(int num_connection) {
 	}
 }
 
-std::vector<int> Neuron::getOutput() {
-	std::vector <int> output_neuron;
-	std::map<int, float>::iterator iter;
-	for (iter = output_synapse.begin(); iter != output_synapse.end(); iter++)
-		output_neuron.push_back(iter->first);
+
+std::vector<int>& Neuron::getInput() {
+	if (!input_neuron_list.size())
+		for (int i = 0; i < input_neuron.size(); ++ i) {
+			input_neuron_list.push_back(input_neuron.front());
+			input_neuron.pop();
+			input_neuron.push(input_neuron_list[i]);
+		}
+	return input_neuron_list;
+}
+
+void NetworkModeling::clusteringUpdateSet(std::set<int> &input_set, std::set<int> &output_set) {
+	std::set<int>::iterator set_it;
+	
+	for (set_it = input_set.begin(); set_it != input_set.end(); ++ set_it) {
+		int input_id = *set_it;
+		bool add_set = true;
+		std::vector<int> output_list = neuron_list[input_id].getOutput();
+		for (auto output_id: output_list) {
+			std::vector<int> input_list = neuron_list[output_id].getInput();
+			for (auto &input_id_of_output: input_list)
+				if (!input_set.count(input_id_of_output)) {
+					add_set = false;
+					break;
+				}
+			// add if all input in the set
+			if (add_set)
+				output_set.insert(output_id);
+		}	
+	}
+}
+
+std::vector<pair<int, int>> NetworkModeling::getCluster(std::vector<std::set<int> >& neuron_set_list, std::vector<int>& dim) {
+	// get cluster
+	std::vector <pair <int, int> > neuron_cluster;
+	int max_input_settled = 0;
+
+	std::random_device rd;
+
+	for (int T = 0; T < ITER_TIME; ++ T) {
+		std::vector<std::set<int> > clustered_neuron;
+		int input_settled_cnt = 0;
+		// loop in neuron_sets
+		for (int i = dim.size() - 1; i >= 0; -- i) {
+			std::vector<int> neuron_in_this_layer;
+			for (std::set<int>::iterator it = neuron_set_list[i].begin(); it != neuron_list[i].end(); ++ it)
+				if (!clustered_neuron[i].count(*it))
+					neuron_in_this_layer.push_back(*it);
+			if (!neruon_in_this_layer.size())
+				continue;
+			std::uniform_int_distribution<int> ud(0, neuron_in_this_layer.size() - 1);
+			std::vector<int> rest_dim(i + 1, 0);
+			for (int t = 0; t < RAMDOM_TIME; ++ t) {
+				int neuron_to_cluster = neuron_in_this_layer[ud(rd)];
+				// compute needed dim
+				std::queue<int> backforward_que;
+				std::set<int> in_bf_que;
+				backforward_que.push(neuron_to_cluster);
+				in_bf_que.insert(neuron_to_cluster);
+				int current_layer = i;
+				while (!backforward_que.empty()) {
+					// the front neuron is in this layer
+					int front_neuron = backforward_que.front()
+					if (neuron_set_list[current_layer].count(front_neuron)) {
+						rest_dim[current_layer] ++;
+						backforward_que.pop();
+						
+						//add all the related input into que
+						std::vector<int> input_list = neuron_list[front_neuron].getInput();
+						for (auto &input: input_list) {
+							if (in_bf_que.count(input) || clustered_neuron[current_layer - 1].count(input))
+								continue;
+							backforward_que.push(input);
+							in_bf_que.insert(input);
+						}
+					}
+					// go to a new layer
+					else
+						current_layer --;
+				}
+
+				// break if found a valid neuron
+				bool valid = true;
+				for (int j = i; j >= 0; ++ j)
+					if (clustered_neuron[i].size + rest_dim[i] > dim[i]) {
+						valid = false;
+						break;
+					}
+				if (valid) {
+					t = 0;
+					// BFS again to update cluster
+					backforward_que.push(neuron_to_cluster);
+					current_layer = i;
+					while (!backforward_que.empty()) {
+						int front_neuron = backforward_que.front()
+						if (neuron_set_list[current_layer].count(front_neuron)) {
+							backforward_que.pop();
+							if (!clustered_neuron[current_layer].count(front_neuron)) {
+								clustered_neuron[curret_layer].insert(front_neuron);
+								input_settled_cnt ++;
+							}
+							
+							std::vector<int> input_list = neuron_list[front_neuron].getInput();
+							for (auto &input: input_list) {
+								if (!clustered_neuron[current_layer - 1].count(input))
+									backforward_que.push(input);
+							}
+						}
+						else
+							current_layer --;
+					}
+				}
+			}
+		}
+
+		//update best
+		if (input_settled_cnt > max_input_settled) {
+			max_input_settled = input_settled_cnt;
+			neuron_cluster.clear();
+			for (int i = 0; i < dim.size(); ++ i) {
+			}
+		}
+	}
+
+	// update neuron_set_list
+}
+
+void NetworkModeling::ClusteringRemoveDummy(std::set<int> &input_set) {
+	std::set<int>::iterator set_it = input_set.begin();
+
+	while (set_it != input_set.end()) {
+		int input_id = *set_it;
+		bool dummy = true;
+		std::vector<int> output_neuron = neuron_list[i].getOutput();
+		for (auto &neuron: output_neuron)
+			if (!neuron.input_settled) {
+				dummy = false;
+				break;
+			}
+		if (dummy)
+			input_set.erase(input_id);
+		else
+			set_it ++;
+	}
+	
+}
+
+int NetworkModeling::networkClustering(std::vector<int> dim) {
+	// divide neuron_list for target architecture
+	std::vector<std::set<int> > neuron_set_list(dim.size());
+
+	// initilize
+	for (auto &neuron: neuron_list)
+		if (!neuron.getInputSize()) {
+			neuron_set_list[0].insert(neuron.getNeuronId());
+			neuron.input_settled = true;
+		}
+	
+	for (int i = 1; i < neuron_set_list.size(); i ++)
+		clusteringUpdateSet(neuron_set_list[i - 1], neuron_set_list[i]);
+
+	// loop until no input(has unknown children)
+	while (neuron_set_list[0].size()) {
+		neuron_cluster_list.emplace_back(getCluster(neuron_set_list, dim));
+		ClusteringRemoveDummy(neuron_set_list[0]);
+	}
+
+	return neuron_cluster_list.size();
+}
+
+std::vector<int>& Neuron::getOutput() {
+	if (!output_neuron.size()) {
+		std::map<int, float>::iterator iter;
+		for (iter = output_synapse.begin(); iter != output_synapse.end(); iter++)
+			output_neuron.push_back(iter->first);
+	}
 	return output_neuron;
 }
 
