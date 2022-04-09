@@ -1,8 +1,10 @@
 #ifndef _NETWORKMODEL_H
 #define _NETWORKMODEL_H
 
-#define ITER_TIME 50
-#define RAMDOM_TIME 200
+#include <set>
+
+#define ITER_TIME 1
+#define RANDOM_TIME 1000
 
 class Neuron {
 	public:
@@ -18,11 +20,9 @@ class Neuron {
 
 		// for clustering
 		std::vector<int>& getInput();
-		void clusteringUpdateSet(std::set<int> &input_set, std::set<int> &output_set);
-		std::vector<int> getCluster(std::vector<std::set<int> >& neuron_set_list);
-		void ClusteringRemoveDummy(std::set<int> &input_set);
 		
 		bool input_settled;
+		bool lazy_update;
 
 	private:
 		int neuron_id, update_pointer;
@@ -50,6 +50,10 @@ class NetworkModel {
 		void networkUnrolling(int num_connection);
 		int networkClustering(std::vector<int> dim);
 
+		void clusteringUpdateSet(std::set<int> &input_set, std::set<int> &output_set);
+		void ClusteringRemoveDummy(std::set<int> &input_set);
+		std::vector<std::pair<int, int>> getCluster(std::vector<std::set<int> >& neuron_set_list, std::vector<int>& dim);
+
 		std::vector<Neuron> getNeuronList();
 
 	private:
@@ -60,7 +64,7 @@ class NetworkModel {
 		std::vector <std::vector <std::vector <float> > > weight; // [0,1] i j
 
 		std::vector <Neuron> neuron_list;
-		std::vector <std::vector <pair <int, int> > > neuron_cluster_list;
+		std::vector <std::vector <std::pair <int, int> > > neuron_cluster_list;
 		//std::vector <std::vector <float> > 
 };
 
@@ -81,6 +85,10 @@ class NetworkInput {
 };
 
 #endif 
+
+
+
+
 
 
 

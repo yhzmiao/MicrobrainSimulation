@@ -60,7 +60,25 @@ void testUnrolling(std::string model_name, int num_connection) {
     std::vector<Neuron> neuron_list = nm.getNeuronList();
 
     std::cout << std::endl << neuron_list.size() << std::endl;
-    /*
+
+    for (auto &neuron: neuron_list) {
+        std::cout << neuron.getNeuronId() << " ";
+        std::vector<int> output_neuron = neuron.getOutput();
+        //std::cout << "size " << output_neuron.size() << std::endl;
+        for (auto out: output_neuron)
+            std::cout << out << " ";
+        std::cout << std::endl;
+    }
+    
+}
+
+void testClustering(std::string model_name, int num_connection, std::vector<int>& dim) {
+    NetworkModel nm(model_name);
+    nm.networkUnrolling(num_connection);
+    std::vector<Neuron> neuron_list = nm.getNeuronList();
+
+    //std::cout << std::endl << neuron_list.size() << std::endl;
+    
     for (auto &neuron: neuron_list) {
         std::cout << neuron.getNeuronId() << " ";
         std::vector<int> output_neuron = neuron.getOutput();
@@ -68,5 +86,10 @@ void testUnrolling(std::string model_name, int num_connection) {
             std::cout << out << " ";
         std::cout << std::endl;
     }
-    */
+    
+
+    std::cout << "Start Clustering!!" << std::endl;
+
+    int num_cluster = nm.networkClustering(dim);
+    std::cout << "Total number of clusters: "<< num_cluster << std::endl;
 }

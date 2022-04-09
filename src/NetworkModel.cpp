@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <random>
+#include <set>
 
 #include "NetworkModel.h"
 
@@ -23,8 +24,9 @@ Neuron::Neuron(int neuron_id, std::vector<int> output_neuron, std::vector<float>
 	neuron_id(neuron_id), update_pointer(0) {
 	for (int i = 0; i < output_neuron.size(); ++ i) {
 		output_synapse[output_neuron[i]] = weight[i];
-	}
+	} 
 	input_settled = false;
+	lazy_update = false;
 }
 
 NetworkModel::NetworkModel(std::string model_name): model_name(model_name) {
@@ -120,9 +122,11 @@ int Neuron::extractInput() {
 }
 
 void Neuron::updateOutput(int src, int dst) {
+	//std::cout << "Swapping " << src << " " << dst << std::endl;
 	float w = output_synapse[src];
 	output_synapse.erase(src);
 	output_synapse[dst] = w;
+	output_neuron.clear();
 }
 
 int Neuron::getInputSize() {
@@ -135,7 +139,7 @@ void NetworkModel::networkUnrolling(int num_connection) {
 	for (int i = 0; i < iter_size; ++ i) {
 		// skip suitable neurons
 		//if (i % 10 == 0)
-		std::cout << std::endl << i << " of " << iter_size << " ";
+		//std::cout << std::endl << i << " of " << iter_size << " ";
 		while (neuron_list[i].getInputSize() > num_connection) {
 			// get inputs
 			std::vector<int> grouped_input;
@@ -157,7 +161,8 @@ void NetworkModel::networkUnrolling(int num_connection) {
 				neuron_list[neuron_id].addInput(input);
 			}
 
-			std::cout << neuron_list[i].getInputSize() << " ";
+
+			//std::cout << neuron_list[i].getInputSize() << " ";
 			//end_update = clock();
 			//double ret_time = (double)(end_update - begin_update) / CLOCKS_PER_SEC;
 			//std::cout << "time: " << ret_time << std::endl;
@@ -176,14 +181,18 @@ std::vector<int>& Neuron::getInput() {
 	return input_neuron_list;
 }
 
-void NetworkModeling::clusteringUpdateSet(std::set<int> &input_set, std::set<int> &output_set) {
+void NetworkModel::clusteringUpdateSet(std::set<int> &input_set, std::set<int> &output_set) {
 	std::set<int>::iterator set_it;
 	
 	for (set_it = input_set.begin(); set_it != input_set.end(); ++ set_it) {
 		int input_id = *set_it;
 		bool add_set = true;
+		//std::cout << "Now working on " << input_id << std::endl;
 		std::vector<int> output_list = neuron_list[input_id].getOutput();
 		for (auto output_id: output_list) {
+			if(neuron_list[output_id].input_settled || output_set.count(output_id))
+				continue;
+			//std::cout << output_id << " ";
 			std::vector<int> input_list = neuron_list[output_id].getInput();
 			for (auto &input_id_of_output: input_list)
 				if (!input_set.count(input_id_of_output)) {
@@ -193,32 +202,41 @@ void NetworkModeling::clusteringUpdateSet(std::set<int> &input_set, std::set<int
 			// add if all input in the set
 			if (add_set)
 				output_set.insert(output_id);
-		}	
+		}
+		//std::cout << std::endl;
 	}
 }
 
-std::vector<pair<int, int>> NetworkModeling::getCluster(std::vector<std::set<int> >& neuron_set_list, std::vector<int>& dim) {
+std::vector<std::pair<int, int>> NetworkModel::getCluster(std::vector<std::set<int> >& neuron_set_list, std::vector<int>& dim) {
 	// get cluster
-	std::vector <pair <int, int> > neuron_cluster;
+	std::vector <std::pair <int, int> > neuron_cluster;
 	int max_input_settled = 0;
 
 	std::random_device rd;
 
 	for (int T = 0; T < ITER_TIME; ++ T) {
-		std::vector<std::set<int> > clustered_neuron;
+		//std::cout << "=======================================" << std::endl;
+		//std::cout << "T = " << T << std::endl;
+		std::vector<std::set<int> > clustered_neuron(dim.size());
 		int input_settled_cnt = 0;
 		// loop in neuron_sets
-		for (int i = dim.size() - 1; i >= 0; -- i) {
+		for (int i = dim.size() - 1; i > 0; -- i) {
 			std::vector<int> neuron_in_this_layer;
-			for (std::set<int>::iterator it = neuron_set_list[i].begin(); it != neuron_list[i].end(); ++ it)
+			for (std::set<int>::iterator it = neuron_set_list[i].begin(); it != neuron_set_list[i].end(); ++ it)
 				if (!clustered_neuron[i].count(*it))
 					neuron_in_this_layer.push_back(*it);
-			if (!neruon_in_this_layer.size())
+			//std::cout << "Neuron in layer " << i << " is " << neuron_in_this_layer.size() << std::endl;
+			if (!neuron_in_this_layer.size())
 				continue;
 			std::uniform_int_distribution<int> ud(0, neuron_in_this_layer.size() - 1);
 			std::vector<int> rest_dim(i + 1, 0);
-			for (int t = 0; t < RAMDOM_TIME; ++ t) {
+			for (int t = 0; t < RANDOM_TIME; ++ t) {
+			//for (int t = 0; t < neuron_in_this_layer.size(); ++ t) {
 				int neuron_to_cluster = neuron_in_this_layer[ud(rd)];
+				//int neuron_to_cluster = neuron_in_this_layer[t];
+				if (clustered_neuron[i].count(neuron_to_cluster))
+					continue;
+				//std::cout << neuron_to_cluster << std::endl;
 				// compute needed dim
 				std::queue<int> backforward_que;
 				std::set<int> in_bf_que;
@@ -227,18 +245,22 @@ std::vector<pair<int, int>> NetworkModeling::getCluster(std::vector<std::set<int
 				int current_layer = i;
 				while (!backforward_que.empty()) {
 					// the front neuron is in this layer
-					int front_neuron = backforward_que.front()
+					int front_neuron = backforward_que.front();
+					//std::cout << front_neuron << std::endl;
 					if (neuron_set_list[current_layer].count(front_neuron)) {
+						//std::cout << "++" << front_neuron << std::endl;
 						rest_dim[current_layer] ++;
 						backforward_que.pop();
-						
 						//add all the related input into que
+						if (!current_layer)
+							continue;
 						std::vector<int> input_list = neuron_list[front_neuron].getInput();
 						for (auto &input: input_list) {
 							if (in_bf_que.count(input) || clustered_neuron[current_layer - 1].count(input))
 								continue;
 							backforward_que.push(input);
 							in_bf_que.insert(input);
+							//std::cout << "**" << input << std::endl;
 						}
 					}
 					// go to a new layer
@@ -248,25 +270,34 @@ std::vector<pair<int, int>> NetworkModeling::getCluster(std::vector<std::set<int
 
 				// break if found a valid neuron
 				bool valid = true;
-				for (int j = i; j >= 0; ++ j)
-					if (clustered_neuron[i].size + rest_dim[i] > dim[i]) {
+				for (int j = i; j >= 0; -- j) {
+					//std::cout << "**" << i << " " << clustered_neuron[i].size() << " " << rest_dim[i] << " " << dim[i] << std::endl;
+					if (clustered_neuron[j].size() + rest_dim[j] > dim[j]) {
 						valid = false;
 						break;
 					}
+				}
+				//std::cout << clustered_neuron[0].size() << " " << rest_dim[0] << std::endl;
 				if (valid) {
 					t = 0;
+					// std::cout << valid << std::endl;
 					// BFS again to update cluster
 					backforward_que.push(neuron_to_cluster);
 					current_layer = i;
 					while (!backforward_que.empty()) {
-						int front_neuron = backforward_que.front()
+						int front_neuron = backforward_que.front();
+						//std::cout << front_neuron << std::endl;
 						if (neuron_set_list[current_layer].count(front_neuron)) {
 							backforward_que.pop();
+							rest_dim[current_layer] --;
+
 							if (!clustered_neuron[current_layer].count(front_neuron)) {
-								clustered_neuron[curret_layer].insert(front_neuron);
+								clustered_neuron[current_layer].insert(front_neuron);
 								input_settled_cnt ++;
 							}
 							
+							if (!current_layer)
+								continue;
 							std::vector<int> input_list = neuron_list[front_neuron].getInput();
 							for (auto &input: input_list) {
 								if (!clustered_neuron[current_layer - 1].count(input))
@@ -276,43 +307,77 @@ std::vector<pair<int, int>> NetworkModeling::getCluster(std::vector<std::set<int
 						else
 							current_layer --;
 					}
+
+					//some optimization
+					for (auto &neuron: neuron_in_this_layer)
+						if (!clustered_neuron[i].count(neuron)) {
+							std::vector<int> input_list = neuron_list[neuron].getInput();
+							bool free_to_add = true;
+							for (auto &input_neuron: input_list)
+								if (!clustered_neuron[i - 1].count(input_neuron)){
+									free_to_add = false;
+									break;
+								}
+							if (free_to_add && clustered_neuron[i].size() < dim[i]) {
+								clustered_neuron[i].insert(neuron);
+								input_settled_cnt;
+								neuron_list[neuron].lazy_update = true;
+							}
+						}
 				}
 			}
 		}
+		//std::cout << "Found a cluster!" << std::endl;
 
 		//update best
 		if (input_settled_cnt > max_input_settled) {
 			max_input_settled = input_settled_cnt;
 			neuron_cluster.clear();
 			for (int i = 0; i < dim.size(); ++ i) {
+				for (std::set<int>::iterator it = clustered_neuron[i].begin(); it != clustered_neuron[i].end(); ++ it) {
+					neuron_cluster.emplace_back(std::make_pair(i, *it));
+				}
 			}
 		}
 	}
-
 	// update neuron_set_list
+	for (auto &neuron_pair: neuron_cluster)
+		if (neuron_pair.first) {
+			neuron_set_list[neuron_pair.first].erase(neuron_pair.second);
+			neuron_set_list[0].insert(neuron_pair.second);
+			neuron_list[neuron_pair.second].input_settled = true;
+		}
+		
+	// print cluster found
+	std::cout << "Cluster Found is:" << std::endl;
+	for (auto &neuron_pair: neuron_cluster) {
+		std::cout << neuron_pair.first << " " << neuron_pair.second << std::endl;
+	}
+
+	return neuron_cluster;
 }
 
-void NetworkModeling::ClusteringRemoveDummy(std::set<int> &input_set) {
+void NetworkModel::ClusteringRemoveDummy(std::set<int> &input_set) {
 	std::set<int>::iterator set_it = input_set.begin();
-
 	while (set_it != input_set.end()) {
 		int input_id = *set_it;
 		bool dummy = true;
-		std::vector<int> output_neuron = neuron_list[i].getOutput();
-		for (auto &neuron: output_neuron)
-			if (!neuron.input_settled) {
+		std::vector<int> output_neuron = neuron_list[input_id].getOutput();
+		for (auto &neuron_id: output_neuron)
+			if (!neuron_list[neuron_id].input_settled) {
 				dummy = false;
 				break;
 			}
+		//std::cout << input_id << std::endl;
 		if (dummy)
-			input_set.erase(input_id);
+			input_set.erase(set_it++);
 		else
-			set_it ++;
+			++ set_it;
 	}
 	
 }
 
-int NetworkModeling::networkClustering(std::vector<int> dim) {
+int NetworkModel::networkClustering(std::vector<int> dim) {
 	// divide neuron_list for target architecture
 	std::vector<std::set<int> > neuron_set_list(dim.size());
 
@@ -326,10 +391,18 @@ int NetworkModeling::networkClustering(std::vector<int> dim) {
 	for (int i = 1; i < neuron_set_list.size(); i ++)
 		clusteringUpdateSet(neuron_set_list[i - 1], neuron_set_list[i]);
 
+	std::cout << "Finished Initilization!!" << std::endl;
 	// loop until no input(has unknown children)
+	int cnt = 0;
 	while (neuron_set_list[0].size()) {
+		//std::cout << neuron_set_list[0].size() << " " << neuron_set_list[1].size() << std::endl;
 		neuron_cluster_list.emplace_back(getCluster(neuron_set_list, dim));
+		std::cout << "ID: " << cnt++ << std::endl;
+		//std::cout << neuron_set_list[0].size() << std::endl;
 		ClusteringRemoveDummy(neuron_set_list[0]);
+		//std::cout << neuron_set_list[0].size() << std::endl;
+		for (int i = 1; i < neuron_set_list.size(); i ++)
+			clusteringUpdateSet(neuron_set_list[i - 1], neuron_set_list[i]);
 	}
 
 	return neuron_cluster_list.size();
@@ -337,9 +410,14 @@ int NetworkModeling::networkClustering(std::vector<int> dim) {
 
 std::vector<int>& Neuron::getOutput() {
 	if (!output_neuron.size()) {
+		//std::cout << "here" << std::endl;
 		std::map<int, float>::iterator iter;
-		for (iter = output_synapse.begin(); iter != output_synapse.end(); iter++)
+		//output_neuron.clear();
+		for (iter = output_synapse.begin(); iter != output_synapse.end(); iter++) {
+			//std::cout << iter->first << " ";
 			output_neuron.push_back(iter->first);
+		}
+		//std::cout << std::endl;
 	}
 	return output_neuron;
 }

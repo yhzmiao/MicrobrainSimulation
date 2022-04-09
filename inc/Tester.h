@@ -7,4 +7,6 @@ void testMessageQueue();
 
 void testUnrolling(std::string model_name, int num_connection);
 
+void testClustering(std::string model_name, int num_connection, std::vector<int>& dim);
+
 #endif

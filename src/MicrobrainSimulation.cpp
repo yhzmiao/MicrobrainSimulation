@@ -22,11 +22,20 @@
 #include "Controller.h"
 
 int main() {
-	// keep track of execution time
-	//std::string name = "MNIST_largescale";
-	//testUnrolling(name, 64);
-	//return 0;
+	
+	std::string name = "MNIST_largescale";
+	std::vector<int> tmp_dim = {256, 64};
+	testClustering(name, 256, tmp_dim);
+	//testUnrolling(name, 256);
+	
+	//std::string name = "Tiny";
+	//std::vector<int> tmp_dim = {3, 3};
+	//testClustering(name, 3, tmp_dim);
+	//testUnrolling(name, 3); 
+	return 0;
+	
 
+	// keep track of execution time
 	Stopwatch watch;
 	
 
