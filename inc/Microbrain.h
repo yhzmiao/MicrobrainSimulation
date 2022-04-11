@@ -17,9 +17,9 @@ class Microbrain {
 
 		void loadWeight(CARLsim &sim, std::string &model_name, std::vector<int> &dim);
 		double loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight);
-		double loadWeight(CARLsim &sim, int model_id);
+		double loadWeight(CARLsim &sim, int model_id, int cluster_id);
 
-		void saveWeightPointer(CARLsim &sim);
+		void saveWeightPointer(CARLsim &sim, int model_id);
 
 		void loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix,int dim, int index, PoissonRate &in);
 		float loadInput(CARLsim &sim, std::vector <float> &input_matrix);
@@ -86,7 +86,7 @@ class Microbrain {
 		SynapseGroup layer2_in_to_layer3_all;
 
 		// model weight pointer
-		std::vector<std::vector<float *> > weight_pointer_list;
+		std::vector<std::vector<std::vector<float *> > > weight_pointer_list;
 		int weight_size;
 
 		// configurations

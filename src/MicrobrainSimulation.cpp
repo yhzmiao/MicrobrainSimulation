@@ -23,16 +23,16 @@
 
 int main() {
 	
-	std::string name = "MNIST_largescale";
-	std::vector<int> tmp_dim = {256, 64};
-	testClustering(name, 256, tmp_dim);
+	//std::string name = "MNIST_largescale";
+	//std::vector<int> tmp_dim = {256, 64};
+	//testClustering(name, 256, tmp_dim);
 	//testUnrolling(name, 256);
 	
 	//std::string name = "Tiny";
 	//std::vector<int> tmp_dim = {3, 3};
 	//testClustering(name, 3, tmp_dim);
 	//testUnrolling(name, 3); 
-	return 0;
+	//return 0;
 	
 
 	// keep track of execution time

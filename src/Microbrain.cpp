@@ -62,8 +62,9 @@ Microbrain::~Microbrain() {
 		delete [] layer2_to_layer3;
 
 		for (int i = 0; i < weight_pointer_list.size(); ++ i)
-			for (int j = 0; j < 6; ++ j)
-				delete [] weight_pointer_list[i][j];
+			for (int j = 0; j < weight_pointer_list[i].size(); ++ j)
+				for (int k = 0; k < 6; ++ k)
+					delete [] weight_pointer_list[i][j][k];
 	}
 }
 
@@ -338,31 +339,31 @@ double Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vecto
 	return ret_time;
 }
 
-double Microbrain::loadWeight(CARLsim &sim, int model_id) {
+double Microbrain::loadWeight(CARLsim &sim, int model_id, int cluster_id) {
 	//std::cout << "Start loading!" << std::endl;
 	time_t begin_load, end_load;
 	begin_load = clock();
 
 	float *tmp_pointer;
 	tmp_pointer = new float[weight_size];
-	memcpy(tmp_pointer, weight_pointer_list[model_id][0], sizeof(float) * weight_size);
+	memcpy(tmp_pointer, weight_pointer_list[model_id][cluster_id][0], sizeof(float) * weight_size);
 	sim.replaceWeight(layer1_ex_to_layer2_ex_all.connection, tmp_pointer);
 	tmp_pointer = new float[weight_size];
-	memcpy(tmp_pointer, weight_pointer_list[model_id][1], sizeof(float) * weight_size);
+	memcpy(tmp_pointer, weight_pointer_list[model_id][cluster_id][1], sizeof(float) * weight_size);
 	sim.replaceWeight(layer1_ex_to_layer2_in_all.connection, tmp_pointer);
 	tmp_pointer = new float[weight_size];
-	memcpy(tmp_pointer, weight_pointer_list[model_id][2], sizeof(float) * weight_size);
+	memcpy(tmp_pointer, weight_pointer_list[model_id][cluster_id][2], sizeof(float) * weight_size);
 	sim.replaceWeight(layer1_in_to_layer2_ex_all.connection, tmp_pointer);
 	tmp_pointer = new float[weight_size];
-	memcpy(tmp_pointer, weight_pointer_list[model_id][3], sizeof(float) * weight_size);
+	memcpy(tmp_pointer, weight_pointer_list[model_id][cluster_id][3], sizeof(float) * weight_size);
 	sim.replaceWeight(layer1_in_to_layer2_in_all.connection, tmp_pointer);
 
 	
 	tmp_pointer = new float[weight_size];
-	memcpy(tmp_pointer, weight_pointer_list[model_id][4], sizeof(float) * weight_size);
+	memcpy(tmp_pointer, weight_pointer_list[model_id][cluster_id][4], sizeof(float) * weight_size);
 	sim.replaceWeight(layer2_ex_to_layer3_all.connection, tmp_pointer);
 	tmp_pointer = new float[weight_size];
-	memcpy(tmp_pointer, weight_pointer_list[model_id][5], sizeof(float) * weight_size);
+	memcpy(tmp_pointer, weight_pointer_list[model_id][cluster_id][5], sizeof(float) * weight_size);
 	sim.replaceWeight(layer2_ex_to_layer3_all.connection, tmp_pointer);
 
 	end_load = clock();
@@ -371,7 +372,7 @@ double Microbrain::loadWeight(CARLsim &sim, int model_id) {
 	return ret_time;
 }
 
-void Microbrain::saveWeightPointer(CARLsim &sim) {
+void Microbrain::saveWeightPointer(CARLsim &sim, int model_id) {
 	std::pair <float *, int> pointer_pair;
 	std::vector <float *> weight_pointer(6, nullptr);
 
@@ -397,7 +398,9 @@ void Microbrain::saveWeightPointer(CARLsim &sim) {
 	memcpy(weight_pointer[5], pointer_pair.first, sizeof(float) * pointer_pair.second);
 
 	weight_size = pointer_pair.second;
-	weight_pointer_list.emplace_back(weight_pointer);
+	if (weight_pointer_list.size() <= model_id)
+		weight_pointer_list.resize(model_id + 1);
+	weight_pointer_list[model_id].emplace_back(weight_pointer);
 }
 
 // todo: add more function

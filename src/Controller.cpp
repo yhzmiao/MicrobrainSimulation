@@ -57,13 +57,23 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 			if (it == model_map.end()) {
 				model_id = model_list.size();
 				model_map.insert(make_pair(payload.model_name, model_id));
-				model_list.emplace_back(NetworkModel(payload.model_name));
-				loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
-				microbrain.saveWeightPointer(sim);
+				NetworkModel network_model(payload.model_name);
+
+				//todo: add some algorithm here
+				network_model.networkUnrolling(256);
+				std::vector<int> tmp_dim = {256, 64};
+				int num_cluster = network_model.networkClustering(tmp_dim);
+
+				model_list.emplace_back(network_model);
+				
+				for (int cluster_id = 0; cluster_id < num_cluster; ++ cluster_id) {
+					loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
+					microbrain.saveWeightPointer(sim, model_id);
+				}
 			}
 			else {
 				model_id = it->second;
-				loading_time = microbrain.loadWeight(sim, model_id);
+				loading_time = microbrain.loadWeight(sim, model_id, 0);
 			}
 
 			//loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());

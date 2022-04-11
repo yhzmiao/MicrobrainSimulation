@@ -4,6 +4,7 @@
 #include <set>
 
 #define ITER_TIME 1
+#define RECLUSTER_TIME 20
 #define RANDOM_TIME 1000
 
 class Neuron {

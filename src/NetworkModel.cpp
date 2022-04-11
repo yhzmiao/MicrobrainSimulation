@@ -69,6 +69,30 @@ NetworkModel::NetworkModel(std::string model_name): model_name(model_name) {
 				fin_w2 >> weight[1][i][j];
 		}
 		fin_w2.close();
+
+		// layer0 dim[0]  layer1 dim[1]  layer2 dim[2]: create neuron_list
+		neuron_list.reserve(total_neuron);
+		int s = 0, t_l = 0, t_r = dim[0];
+		for (int i = 0; i < num_dim - 1; ++ i) {
+			std::vector<int> output_neuron;
+			t_l = t_r; t_r += dim[i + 1];
+			for (int j = t_l; j < t_r; ++ j) {
+				output_neuron.push_back(j);
+				//std::cout << j << " ";
+			}
+			//std::cout << output_neuron.size() << std::endl;
+			//std::cout << std::endl;
+			for (int j = s; j < t_l; ++ j) {
+				//std::cout << s << " " << j - s << " " << i << " " << weight[i].size() << std::endl;
+				neuron_list.emplace_back(Neuron(j, output_neuron, weight[i][j - s]));
+			}
+			s = t_l;
+		}
+		
+		std::vector <int> output_neuron;
+		std::vector <float> weight;
+		for (int i = t_l; i < t_r; ++ i)
+			neuron_list.emplace_back(Neuron(i, output_neuron, weight));
 	}
 	//large scale
 	else {
@@ -96,15 +120,30 @@ NetworkModel::NetworkModel(std::string model_name): model_name(model_name) {
 			neuron_list.emplace_back(Neuron(neuron_id, output_neuron, weight));
 		}
 
-		//update input neuron
-		for (int i = 0; i < total_neuron; ++ i) {
-			int neuron_in = neuron_list[i].getNeuronId(); // should be i
-			std::vector<int> output_neuron = neuron_list[i].getOutput();
-
-			for (auto neuron_out: output_neuron)
-				neuron_list[neuron_out].addInput(neuron_in);
+	}
+	//std::cout << "Finished initialization" << std::endl;
+	//update input neuron
+	for (int i = 0; i < total_neuron; ++ i) {
+		int neuron_in = neuron_list[i].getNeuronId(); // should be i
+		std::vector<int> output_neuron = neuron_list[i].getOutput();
+		
+		for (auto neuron_out: output_neuron) {
+			//std::cout << neuron_out << std::endl;
+			neuron_list[neuron_out].addInput(neuron_in);
 		}
 	}
+	/*
+	std::cout << "Finished update" << std::endl;
+
+	for (int i = 0; i < total_neuron; ++ i) {
+		std::vector<int> output_neuron = neuron_list[i].getOutput();
+		std::cout << i << " ";
+		for (auto neuron_out: output_neuron) {
+			std:: cout << neuron_out << " ";
+		}
+		std::cout << std::endl;
+	}
+	*/
 }
 
 int Neuron::getNeuronId() {
@@ -134,6 +173,9 @@ int Neuron::getInputSize() {
 }
 
 void NetworkModel::networkUnrolling(int num_connection) {
+	// skip the process if not large scale
+	if (!large_scale)
+		return;
 	// update all the neurons
 	int iter_size = neuron_list.size();
 	for (int i = 0; i < iter_size; ++ i) {
@@ -378,15 +420,32 @@ void NetworkModel::ClusteringRemoveDummy(std::set<int> &input_set) {
 }
 
 int NetworkModel::networkClustering(std::vector<int> dim) {
+	if (!large_scale) {
+		int s = 0;
+		neuron_cluster_list.resize(1);
+		for (int i = 0; i < this->dim.size(); ++ i) {
+			for (int j = s; j < s + this->dim[i]; ++ j) {
+				neuron_cluster_list[0].emplace_back(std::make_pair(i, j));
+			}
+			s += dim[i];
+		}
+
+		//for (auto &cluster: neuron_cluster_list[0])
+		//	std::cout << cluster.first << " " << cluster.second << std::endl;
+		return 1;
+	}
 	// divide neuron_list for target architecture
+	neuron_cluster_list.resize(0);
 	std::vector<std::set<int> > neuron_set_list(dim.size());
 
 	// initilize
-	for (auto &neuron: neuron_list)
+	for (auto &neuron: neuron_list) {
+		neuron.input_settled = false;
 		if (!neuron.getInputSize()) {
 			neuron_set_list[0].insert(neuron.getNeuronId());
 			neuron.input_settled = true;
 		}
+	}
 	
 	for (int i = 1; i < neuron_set_list.size(); i ++)
 		clusteringUpdateSet(neuron_set_list[i - 1], neuron_set_list[i]);
