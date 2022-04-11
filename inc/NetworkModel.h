@@ -2,6 +2,8 @@
 #define _NETWORKMODEL_H
 
 #include <set>
+#include <map>
+#include <queue>
 
 #define ITER_TIME 1
 #define RECLUSTER_TIME 20
@@ -21,12 +23,17 @@ class Neuron {
 
 		// for clustering
 		std::vector<int>& getInput();
+		float getWeight(int output_id);
+
+		// for mapping
+		void setInputRate(int rate);
+		int getInputRate();
 		
 		bool input_settled;
 		bool lazy_update;
 
 	private:
-		int neuron_id, update_pointer;
+		int neuron_id, update_pointer, input_rate;
 		std::queue<int> input_neuron;
 		std::vector<int> input_neuron_list;
 		//std::vector<float> weight;
@@ -56,6 +63,15 @@ class NetworkModel {
 		std::vector<std::pair<int, int>> getCluster(std::vector<std::set<int> >& neuron_set_list, std::vector<int>& dim);
 
 		std::vector<Neuron> getNeuronList();
+		std::vector<std::pair<int, int> >& getCluster(int cluster_id);
+		void setClusterWeight(int cluster_id, std::vector <std::vector <std::vector<float> > >& weight);
+		int getClusterSize();
+
+		// for mapping clusters
+		void setInputMatrix(std::vector<float>& input_matrix);
+		std::vector<int> getInputMatrix(int cluster_id);
+		void updateInput(int cluster_id, std::vector<int>& spike_time);
+		int getResult();
 
 	private:
 		bool large_scale;

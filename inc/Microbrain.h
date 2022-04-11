@@ -1,11 +1,15 @@
 #ifndef _MICROBRAIN_H
 #define _MICROBRAIN_H
 
+#include "NetworkModel.h"
+
 #define NUM_NEURON_LAYER1 256
 #define NUM_NEURON_LAYER2 64
 #define NUM_NEURON_LAYER3 16
 
 #define EPS 1e-8
+
+
 
 class Microbrain {
 	public:
@@ -17,16 +21,19 @@ class Microbrain {
 
 		void loadWeight(CARLsim &sim, std::string &model_name, std::vector<int> &dim);
 		double loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight);
-		double loadWeight(CARLsim &sim, int model_id, int cluster_id);
+		double loadWeight(CARLsim &sim, NetworkModel &network_model, int model_id, int cluster_id, bool in_map);
 
 		void saveWeightPointer(CARLsim &sim, int model_id);
 
 		void loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix,int dim, int index, PoissonRate &in);
 		float loadInput(CARLsim &sim, std::vector <float> &input_matrix);
+		void recoverInput(CARLsim &sim, std::vector <float> &input_matrix);
 
 		std::vector < std::vector <int> > getResults(bool print_result = true);
 		float testAccuracy(CARLsim &sim, std::string &dataset_name, float *input_matrix, int dim, int num_case, PoissonRate &in);
-		int testResult(CARLsim &sim, PoissonRate &in, float input_cnt);
+		std::vector<int> testResult(CARLsim &sim, PoissonRate &in, float input_cnt = 0.0f);
+
+		void initInputWeightPointer(CARLsim &sim);
 
 		struct Synapse {
 			int connection;
@@ -66,7 +73,8 @@ class Microbrain {
 		Grid3D grid_layer2_all_ex;
 		Grid3D grid_layer2_all_in;
 		Grid3D grid_layer3_all;
-		int ginput_all;
+		
+		std::vector<int> ginput_all;
 		int glayer1_all_ex;
 		int glayer1_all_in;
 		int glayer2_all_ex;
@@ -75,8 +83,16 @@ class Microbrain {
 
 		// manage connections together
 		// todo: maybe store the weight of connections
-		SynapseGroup input_to_layer1_ex_all;
-		SynapseGroup input_to_layer1_in_all;
+		//SynapseGroup input_to_layer1_ex_all;
+		//SynapseGroup input_to_layer1_in_all;
+		std::vector <int> input_to_layer1_ex_all;
+		std::vector <int> input_to_layer1_in_all;
+
+		// weight pointer for input layer
+		std::vector<std::vector<float *> > weight_pointer_i2l_ex;
+		std::vector<std::vector<float *> > weight_pointer_i2l_in;
+		int input_size;
+
 		SynapseGroup layer1_ex_to_layer2_ex_all;
 		SynapseGroup layer1_ex_to_layer2_in_all;
 		SynapseGroup layer1_in_to_layer2_ex_all;
@@ -95,7 +111,8 @@ class Microbrain {
 		bool single_neuron_group;
 
 		// spike monitor
-		SpikeMonitor * result_monitor;
+		SpikeMonitor * result_monitor_layer2;
+		SpikeMonitor * result_monitor_layer3;
 };
 
 
