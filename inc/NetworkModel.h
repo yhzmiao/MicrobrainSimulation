@@ -26,14 +26,14 @@ class Neuron {
 		float getWeight(int output_id);
 
 		// for mapping
-		void setInputRate(int rate);
-		int getInputRate();
+		void setInputRate(int rate, bool ex = true);
+		std::pair<int, int> getInputRate();
 		
 		bool input_settled;
 		bool lazy_update;
 
 	private:
-		int neuron_id, update_pointer, input_rate;
+		int neuron_id, update_pointer, input_rate_ex, input_rate_in;
 		std::queue<int> input_neuron;
 		std::vector<int> input_neuron_list;
 		//std::vector<float> weight;
@@ -68,8 +68,8 @@ class NetworkModel {
 		int getClusterSize();
 
 		// for mapping clusters
-		void setInputMatrix(std::vector<float>& input_matrix);
-		std::vector<int> getInputMatrix(int cluster_id);
+		int setInputMatrix(std::vector<float>& input_matrix);
+		std::vector<std::pair<int, int> > getInputMatrix(int cluster_id);
 		void updateInput(int cluster_id, std::vector<int>& spike_time);
 		int getResult();
 

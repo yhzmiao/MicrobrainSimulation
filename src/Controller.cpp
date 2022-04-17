@@ -81,23 +81,29 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 				in_map = true;
 			}
 
-			neuron_model.setInputMatrix(payload.input_matrix); // todo
-			std::vector<int> cluster_input_matrix;
+			int input_cnt = model_list[model_id].setInputMatrix(payload.input_matrix);
+			
+			std::vector<std::pair<int, int> > cluster_input_matrix;
 			for (int cluster_id = 0; cluster_id < num_cluster; ++ cluster_id) {
+				std::cout << "Now running on cluster " << cluster_id << std::endl;
 				loading_time += microbrain.loadWeight(sim, model_list[model_id], model_id, cluster_id, in_map);
 				if (!in_map)
 					microbrain.saveWeightPointer(sim, model_id);
-				cluster_input_matrix = neuron_model.getInputMatrix(cluster_id); // todo
+				cluster_input_matrix = model_list[model_id].getInputMatrix(cluster_id); // todo
 				microbrain.loadInput(sim, cluster_input_matrix);
+				std::cout << "Loaded input matrix!" << std::endl;
 
 				std::vector<int> spike_time = microbrain.testResult(sim, in);
-				neuron_model.updateInput(cluster_id, spike_time); // todo
+				//for (int i = 0; i < spike_time.size(); ++ i) {
+				//	std::cout << i << " " << spike_time[i] << std::endl;
+				//}
+				model_list[model_id].updateInput(cluster_id, spike_time); // todo
 			}
 
-			int test_result = neuron_model.getResult(); // todo
+			int test_result = model_list[model_id].getResult(); // todo
 			
 			//loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
-			std::cout << "Loaded Weight!" << std::endl;
+			std::cout << std::endl << "Loaded Weight!" << std::endl;
 			std::cout << "Receiver:" << std::endl << "\tSender ID: " << j << " Order: " << i;
 			std::cout << " Expected Value: " << payload.output_val << std::endl;
 
@@ -109,7 +115,7 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 				std::cout << " (wrong)" << std::endl;
 			end_run = clock();
 			double running_time = (double)(end_run - begin_run) / CLOCKS_PER_SEC;
-			std::cout << "Running time: " << running_time << " (" << loading_time << " + 0.1 + " << running_time - loading_time - 0.1 << ")"<< std::endl;
+			std::cout << "Running time: " << running_time << " (" << loading_time << " + " << 0.1 * num_cluster << " + " << running_time - loading_time - 0.1 << ")"<< std::endl;
 			std::cout << "==========================================================================" << std::endl;
 			microbrain.recoverInput(sim, payload.input_matrix);
 		}

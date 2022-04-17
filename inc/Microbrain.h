@@ -26,7 +26,7 @@ class Microbrain {
 		void saveWeightPointer(CARLsim &sim, int model_id);
 
 		void loadInput(CARLsim &sim, std::string &dataset_name, float *input_matrix,int dim, int index, PoissonRate &in);
-		float loadInput(CARLsim &sim, std::vector <float> &input_matrix);
+		void loadInput(CARLsim &sim, std::vector <std::pair<int, int>> &input_matrix);
 		void recoverInput(CARLsim &sim, std::vector <float> &input_matrix);
 
 		std::vector < std::vector <int> > getResults(bool print_result = true);
@@ -34,6 +34,7 @@ class Microbrain {
 		std::vector<int> testResult(CARLsim &sim, PoissonRate &in, float input_cnt = 0.0f);
 
 		void initInputWeightPointer(CARLsim &sim);
+		float getWeightFromSpike(int num_spike);
 
 		struct Synapse {
 			int connection;
@@ -75,6 +76,8 @@ class Microbrain {
 		Grid3D grid_layer3_all;
 		
 		std::vector<int> ginput_all;
+		std::vector<int> ginput_all_ex;
+		std::vector<int> ginput_all_in;
 		int glayer1_all_ex;
 		int glayer1_all_in;
 		int glayer2_all_ex;
@@ -87,6 +90,11 @@ class Microbrain {
 		//SynapseGroup input_to_layer1_in_all;
 		std::vector <int> input_to_layer1_ex_all;
 		std::vector <int> input_to_layer1_in_all;
+
+		std::vector <int> input_ex_to_layer1_ex_all;
+		std::vector <int> input_in_to_layer1_ex_all;
+		std::vector <int> input_ex_to_layer1_in_all;
+		std::vector <int> input_in_to_layer1_in_all;
 
 		// weight pointer for input layer
 		std::vector<std::vector<float *> > weight_pointer_i2l_ex;
@@ -111,7 +119,8 @@ class Microbrain {
 		bool single_neuron_group;
 
 		// spike monitor
-		SpikeMonitor * result_monitor_layer2;
+		SpikeMonitor * result_monitor_layer2_ex;
+		SpikeMonitor * result_monitor_layer2_in;
 		SpikeMonitor * result_monitor_layer3;
 };
 
