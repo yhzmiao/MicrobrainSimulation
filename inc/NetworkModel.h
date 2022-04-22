@@ -6,8 +6,9 @@
 #include <queue>
 
 #define ITER_TIME 1
-#define RECLUSTER_TIME 20
-#define RANDOM_TIME 1000
+#define RECLUSTER_TIME 10
+#define RANDOM_TIME 500
+//#define RUN_TIME 400
 
 class Neuron {
 	public:
@@ -50,6 +51,7 @@ class SNN {
 class NetworkModel {
 	public:
 		NetworkModel(std::string model_name);
+		//NetworkModel(const NetworkModel &nm);
 		~NetworkModel() = default;
 
 		// get weight by reference
@@ -72,9 +74,12 @@ class NetworkModel {
 		std::vector<std::pair<int, int> > getInputMatrix(int cluster_id);
 		void updateInput(int cluster_id, std::vector<int>& spike_time);
 		int getResult();
+		int getRunningTime();
 
 	private:
 		bool large_scale;
+
+		int run_time = 100;
 
 		std::string model_name;
 		std::vector <int> dim;
@@ -83,6 +88,10 @@ class NetworkModel {
 		std::vector <Neuron> neuron_list;
 		std::vector <std::vector <std::pair <int, int> > > neuron_cluster_list;
 		//std::vector <std::vector <float> > 
+
+		// for creating instance
+		std::vector <std::pair<int, int> > model_condition_list; //first: model_id, second: cluster;
+		std::vector <std::vector <float> > model_rate_list;
 };
 
 class NetworkInput {

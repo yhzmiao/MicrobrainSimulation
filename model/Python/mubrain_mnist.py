@@ -24,7 +24,7 @@ parser.add_argument('-b', '--batch-size', default=64, type=int, help='Batch 大�
 parser.add_argument('-T', '--timesteps', default=100, type=int, dest='T', help='仿真时长，例如“100”\n Simulating timesteps, e.g., "100"')
 parser.add_argument('--lr', '--learning-rate', default=1e-3, type=float, metavar='LR', help='学习率，例如“1e-3”\n Learning rate, e.g., "1e-3": ', dest='lr')
 parser.add_argument('--tau', default=2.0, type=float, help='LIF神经元的时间常数tau，例如“100.0”\n Membrane time constant, tau, for LIF neurons, e.g., "100.0"')
-parser.add_argument('-N', '--epoch', default=200, type=int, help='训练epoch，例如“100”\n Training epoch, e.g., "100"')
+parser.add_argument('-N', '--epoch', default=5, type=int, help='训练epoch，例如“100”\n Training epoch, e.g., "100"')
 
 
 class PositiveLinear(nn.Module):
@@ -116,12 +116,12 @@ def main():
     # 定义并初始化网络
     net = nn.Sequential(
         nn.Flatten(),
-        nn.Linear(32 * 32, 256, bias=False), # layer1
+        nn.Linear(32 * 32, 8 * 8, bias=False), # layer1
         # PositiveLinear(16 * 16, 64),
         neuron.LIFNode(tau=tau),
-        nn.Linear(16 * 16, 8 * 8, bias=False),
+        #nn.Linear(16 * 16, 8 * 8, bias=False),
         # PositiveLinear(8 * 8, 10),
-        neuron.LIFNode(tau=tau),
+        #neuron.LIFNode(tau=tau),
         nn.Linear(8 * 8, 10, bias=False),
         # PositiveLinear(8 * 8, 10),
         neuron.LIFNode(tau=tau)

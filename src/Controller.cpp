@@ -44,7 +44,9 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 	model_list.reserve(num_sender);
 
 	time_t begin_run, end_run;
-	for (int i = 0; i < count; ++ i)
+	int correct_cnt = 0, total_cnt = 0;
+	for (int i = 0; i < count; ++ i) {
+		std::cout << "Quest ID: " << i << std::endl;
 		for (int j = 0; j < num_sender; ++ j) {
 			begin_run = clock();
 			//std::cout << "receiver " << i << " " << j << std::endl;
@@ -91,9 +93,9 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 					microbrain.saveWeightPointer(sim, model_id);
 				cluster_input_matrix = model_list[model_id].getInputMatrix(cluster_id); // todo
 				microbrain.loadInput(sim, cluster_input_matrix);
-				std::cout << "Loaded input matrix!" << std::endl;
+				//std::cout << "Loaded input matrix!" << std::endl;
 
-				std::vector<int> spike_time = microbrain.testResult(sim, in);
+				std::vector<int> spike_time = microbrain.testResult(sim, cluster_input_matrix, in, model_list[model_id].getRunningTime());
 				//for (int i = 0; i < spike_time.size(); ++ i) {
 				//	std::cout << i << " " << spike_time[i] << std::endl;
 				//}
@@ -109,16 +111,21 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 
 			std::cout << std::endl << "Total Input: " << input_cnt ;
 			std::cout << std::endl << "Running Result: " << test_result;
-			if (test_result == payload.output_val)
+			total_cnt ++;
+			if (test_result == payload.output_val) {
 				std::cout << " (correct)" << std::endl;
+				correct_cnt ++;
+			}
 			else
 				std::cout << " (wrong)" << std::endl;
 			end_run = clock();
 			double running_time = (double)(end_run - begin_run) / CLOCKS_PER_SEC;
 			std::cout << "Running time: " << running_time << " (" << loading_time << " + " << 0.1 * num_cluster << " + " << running_time - loading_time - 0.1 << ")"<< std::endl;
+			std::cout << "Accuracy: " << correct_cnt << "/" << total_cnt << " (" << (double)correct_cnt / (double)total_cnt << ")" << std::endl;
 			std::cout << "==========================================================================" << std::endl;
 			microbrain.recoverInput(sim, payload.input_matrix);
 		}
+	}
 }
 
 Controller::Controller(int num_sender): num_sender(num_sender) {

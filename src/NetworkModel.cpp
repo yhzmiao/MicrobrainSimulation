@@ -40,6 +40,8 @@ NetworkModel::NetworkModel(std::string model_name): model_name(model_name) {
 	int num_dim, total_neuron = 0;
 	fin_dim >> num_dim;
 
+	run_time = 100;
+
 	dim.resize(num_dim);
 	for (int i = 0; i < num_dim; ++ i) {
 		fin_dim >> dim[i];
@@ -99,6 +101,7 @@ NetworkModel::NetworkModel(std::string model_name): model_name(model_name) {
 	//large scale
 	else {
 		large_scale = true;
+		run_time = 400;
 		std::ifstream fin_w(dir + "weights.txt");
 		neuron_list.reserve(total_neuron);
 		std::string read_buffer;
@@ -442,6 +445,7 @@ void NetworkModel::ClusteringRemoveDummy(std::set<int> &input_set) {
 }
 
 int NetworkModel::networkClustering(std::vector<int> dim) {
+	//large_scale = true;
 	if (!large_scale) {
 		int s = 0;
 		neuron_cluster_list.resize(1);
@@ -457,36 +461,47 @@ int NetworkModel::networkClustering(std::vector<int> dim) {
 		return 1;
 	}
 	// divide neuron_list for target architecture
-	neuron_cluster_list.resize(0);
-	std::vector<std::set<int> > neuron_set_list(dim.size());
+	int best_size = 1e9;
+	std::vector <std::vector <std::pair <int, int> > > best_neuron_cluster_list;
 
-	// initilize
-	for (auto &neuron: neuron_list) {
-		neuron.input_settled = false;
-		if (!neuron.getInputSize()) {
-			neuron_set_list[0].insert(neuron.getNeuronId());
-			neuron.input_settled = true;
+	for (int T = 0; T < RECLUSTER_TIME; ++ T) {
+		neuron_cluster_list.resize(0);
+		std::vector<std::set<int> > neuron_set_list(dim.size());
+
+		// initilize
+		for (auto &neuron: neuron_list) {
+			neuron.input_settled = false;
+			if (!neuron.getInputSize()) {
+				neuron_set_list[0].insert(neuron.getNeuronId());
+				neuron.input_settled = true;
+			}
 		}
-	}
-	
-	for (int i = 1; i < neuron_set_list.size(); i ++)
-		clusteringUpdateSet(neuron_set_list[i - 1], neuron_set_list[i]);
-
-	std::cout << "Finished Initilization!!" << std::endl;
-	// loop until no input(has unknown children)
-	int cnt = 0;
-	while (neuron_set_list[0].size()) {
-		//std::cout << neuron_set_list[0].size() << " " << neuron_set_list[1].size() << std::endl;
-		neuron_cluster_list.emplace_back(getCluster(neuron_set_list, dim));
-		//std::cout << "ID: " << cnt++ << std::endl;
-		//std::cout << neuron_set_list[0].size() << std::endl;
-		ClusteringRemoveDummy(neuron_set_list[0]);
-		//std::cout << neuron_set_list[0].size() << std::endl;
+		
 		for (int i = 1; i < neuron_set_list.size(); i ++)
 			clusteringUpdateSet(neuron_set_list[i - 1], neuron_set_list[i]);
+
+		//std::cout << "Finished Initilization!!" << std::endl;
+		// loop until no input(has unknown children)
+		int cnt = 0;
+		while (neuron_set_list[0].size()) {
+			//std::cout << neuron_set_list[0].size() << " " << neuron_set_list[1].size() << std::endl;
+			neuron_cluster_list.emplace_back(getCluster(neuron_set_list, dim));
+			//std::cout << "ID: " << cnt++ << std::endl;
+			//std::cout << neuron_set_list[0].size() << std::endl;
+			ClusteringRemoveDummy(neuron_set_list[0]);
+			//std::cout << neuron_set_list[0].size() << std::endl;
+			for (int i = 1; i < neuron_set_list.size(); i ++)
+				clusteringUpdateSet(neuron_set_list[i - 1], neuron_set_list[i]);
+		}
+		
+		std::cout << "Iter " << T << ": total number of cluster: " << neuron_cluster_list.size() << std::endl;
+
+		if (neuron_cluster_list.size() < best_size) {
+			best_size = neuron_cluster_list.size();
+			best_neuron_cluster_list = neuron_cluster_list;
+		}
 	}
-	
-	std::cout << "Total number of cluster: " << neuron_cluster_list.size();
+	neuron_cluster_list = best_neuron_cluster_list;
 	return neuron_cluster_list.size();
 }
 
@@ -667,4 +682,8 @@ int NetworkModel::getResult() {
 	}
 	
 	return max_spike_id;
+}
+
+int NetworkModel::getRunningTime() {
+	return run_time;
 }

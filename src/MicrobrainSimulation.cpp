@@ -44,8 +44,8 @@ int main() {
 	// create a network on GPU
 	int numGPUs = 1;
 	int randSeed = 42;
-	std::vector<std::string> dataset_name = {"MNIST_32", "MNIST_16", "MNIST_16"};
-	std::vector<std::string> model_name = {"MNIST_largescale", "MNIST_positive", "MNIST_negative"};
+	std::vector<std::string> dataset_name = {"MNIST_32"};//, "MNIST_16", "MNIST_16"};
+	std::vector<std::string> model_name = {"MNIST_largescale_3"};//, "MNIST_positive", "MNIST_negative"};
 	//std::vector<std::string> dataset_name = {"MNIST_16", "MNIST_16", "MNIST_16"};
 	//std::vector<std::string> model_name = {"MNIST_negative", "MNIST_positive", "MNIST_negative"};
 	std::vector <int> dim = {256, 64, 10};
@@ -71,8 +71,9 @@ int main() {
 	//microbrain.loadWeight(sim, model_name, dim);
 	
 	int in_size = NUM_NEURON_LAYER1;
+	//std::vector<PoissonRate> in_list(in_size, PoissonRate(1, false));
+	//in.setRates(500.0f);
 	PoissonRate in(in_size, false);
-	in.setRates(500.0f);
 	//microbrain.loadInput(sim, dataset_name, input_matrix, NUM_NEURON_LAYER1, 0, in);
 
 	// ---------------- RUN STATE -------------------
@@ -82,8 +83,8 @@ int main() {
 	// n = 10000 94.42
 
 	// initialize with the number of sender
-	Controller controller(3);
-	controller.run(model_name, dataset_name, 10, microbrain, sim, in);
+	Controller controller(1);
+	controller.run(model_name, dataset_name, 100, microbrain, sim, in);
 	
 	//for (int i=0; i<3; i++) {
 	//	sim.runNetwork(1,0);
