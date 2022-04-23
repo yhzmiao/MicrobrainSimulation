@@ -4,11 +4,33 @@
 #include <set>
 #include <map>
 #include <queue>
+#include <ctime>
 
 #define ITER_TIME 1
 #define RECLUSTER_TIME 10
 #define RANDOM_TIME 500
 //#define RUN_TIME 400
+
+struct RunningTask {
+	int query_id;
+	time_t time_stamp;
+
+	RunningTask() {}
+	RunningTask(int query_id, time_t time_stamp): query_id(query_id), time_stamp(time_stamp){}
+	RunningTask(const RunningTask &rt): query_id(rt.query_id), time_stamp(rt.time_stamp) {}
+};
+
+struct QueryInformation{
+	int model_id;
+	int cluster_id;
+	int weight;
+	time_t time_stamp;
+	std::vector <int> spike_rate;
+
+	QueryInformation() {}
+	QueryInformation(int model_id, int cluster_id, int weight, time_t time_stamp, std::vector <int> spike_rate): model_id(model_id), cluster_id(cluster_id), weight(weight), time_stamp(time_stamp), spike_rate(spike_rate){}
+	QueryInformation(const QueryInformation &qi): model_id(qi.model_id), cluster_id(qi.cluster_id), weight(qi.weight), time_stamp(qi.time_stamp), spike_rate(qi.spike_rate) {}
+};
 
 class Neuron {
 	public:
@@ -90,8 +112,8 @@ class NetworkModel {
 		//std::vector <std::vector <float> > 
 
 		// for creating instance
-		std::vector <std::pair<int, int> > model_condition_list; //first: model_id, second: cluster;
-		std::vector <std::vector <float> > model_rate_list;
+		//std::vector <std::pair<int, int> > model_condition_list; //first: model_id, second: cluster;
+		//std::vector <std::vector <float> > model_rate_list;
 };
 
 class NetworkInput {

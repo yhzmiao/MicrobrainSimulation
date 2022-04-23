@@ -1,11 +1,6 @@
 #ifndef _CONTROLLER_H
 #define _CONTROLLER_H
 
-class Stratagy {
-	public:
-		virtual bool schedulingAlgorithm() = 0;
-};
-
 //todo: maybe some complicated algorithm
 class Controller {
 	public:
