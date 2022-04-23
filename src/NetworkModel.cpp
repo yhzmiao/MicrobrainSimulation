@@ -20,6 +20,21 @@ std::vector<std::string> stringSplit(const std::string &str, const std::string &
 	return sub_string;
 }*/
 
+void QueryInformation::setValue(int m_id, int c_id, int w, int o_v, time_t ts, int spike_size) {
+	model_id = m_id;
+	cluster_id = c_id;
+	weight = w;
+	output_val = o_v;
+	time_stamp = ts;
+	spike_rate.resize(spike_size);
+	for(auto &s: spike_rate)
+		s = std::make_pair(0, 0);
+}
+
+void QueryInformation::update() {
+	cluster_id ++;
+}
+
 Neuron::Neuron(int neuron_id, std::vector<int> output_neuron, std::vector<float> weight): 
 	neuron_id(neuron_id), update_pointer(0) {
 	for (int i = 0; i < output_neuron.size(); ++ i) {
@@ -205,7 +220,7 @@ std::pair<int, int> Neuron::getInputRate() {
 
 void NetworkModel::networkUnrolling(int num_connection) {
 	// skip the process if not large scale
-	// large_scale = true;
+	large_scale = true;
 	if (!large_scale)
 		return;
 	// update all the neurons
@@ -618,15 +633,20 @@ int NetworkModel::getClusterSize() {
 	return neuron_cluster_list.size();
 }
 
-int NetworkModel::setInputMatrix(std::vector<float>& input_matrix) {
+int NetworkModel::getNeuronSize() {
+	return neuron_list.size();
+}
+
+int NetworkModel::setInputMatrix(std::vector<float>& input_matrix, QueryInformation &q) {
 	int cnt = 0;
-	int div = input_matrix.size()>256?32:16;
+	//int div = input_matrix.size()>256?32:16;
 	for (int i = 0; i < input_matrix.size(); ++ i) {
-		if (i % div == 0)
-			std::cout << std::endl;
-		std::cout << (input_matrix[i]>0.5f?"*":" ") << " ";
+		//if (i % div == 0)
+		//	std::cout << std::endl;
+		//std::cout << (input_matrix[i]>0.5f?"*":" ") << " ";
 		if (input_matrix[i] > 0.5f) {
-			neuron_list[i].setInputRate(100);
+			//neuron_list[i].setInputRate(100);
+			q.spike_rate[i] = std::make_pair(100, 0);
 			cnt++;
 		}
 	}
@@ -634,30 +654,33 @@ int NetworkModel::setInputMatrix(std::vector<float>& input_matrix) {
 	return cnt;
 }
 
-std::vector<std::pair<int, int> > NetworkModel::getInputMatrix(int cluster_id) {
+std::vector<std::pair<int, int> > NetworkModel::getInputMatrix(QueryInformation &q) {
 	std::vector<std::pair<int, int>> ret_list;
-	for (auto &neuron: neuron_cluster_list[cluster_id]) {
+	for (auto &neuron: neuron_cluster_list[q.cluster_id]) {
 		if (neuron.first)
 			break;
-		ret_list.push_back(neuron_list[neuron.second].getInputRate());
+		//ret_list.push_back(neuron_list[neuron.second].getInputRate());
+		ret_list.push_back(q.spike_rate[neuron.second]);
 		//std::cout << neuron.second << std::endl;
 	}
 	return ret_list;
 }
 
-void NetworkModel::updateInput(int cluster_id, std::vector<int>& spike_time) {
+void NetworkModel::updateInput(int cluster_id, std::vector<int>& spike_time, QueryInformation &q) {
 	int cnt_0 = 0, cnt_1 = 64, cnt_2 = 128;
 	for (auto &neuron: neuron_cluster_list[cluster_id]) {
 		if (neuron.first == 1) {
-			neuron_list[neuron.second].setInputRate(spike_time[cnt_0++], true);
-			neuron_list[neuron.second].setInputRate(spike_time[cnt_1++], false);
+			//neuron_list[neuron.second].setInputRate(spike_time[cnt_0++], true);
+			//neuron_list[neuron.second].setInputRate(spike_time[cnt_1++], false);
+			q.spike_rate[neuron.second] = std::make_pair(spike_time[cnt_0++], spike_time[cnt_1++]);
 		}
 		if (neuron.first == 2)
-			neuron_list[neuron.second].setInputRate(spike_time[cnt_2++]);
+			//neuron_list[neuron.second].setInputRate(spike_time[cnt_2++]);
+			q.spike_rate[neuron.second] = std::make_pair(spike_time[cnt_2++], 0);
 	}
 }
 
-int NetworkModel::getResult() {
+int NetworkModel::getResult(QueryInformation &q) {
 	int max_num_spike = 0, max_spike_id;
 	std::cout << "Output Spike";
 	int cnt = 0;
@@ -668,18 +691,20 @@ int NetworkModel::getResult() {
 	cnt = 0;
 	for (auto &neuron_pair: neuron_cluster_list[neuron_cluster_list.size() - 1]) 
 		if (!neuron_list[neuron_pair.second].getOutput().size()){
-			std::cout << "\t" << neuron_list[neuron_pair.second].getInputRate().first;
-			if (neuron_list[neuron_pair.second].getInputRate().first > max_num_spike) {
-				max_num_spike = neuron_list[neuron_pair.second].getInputRate().first;
+			//std::cout << "\t" << neuron_list[neuron_pair.second].getInputRate().first;
+			std::cout << "\t" << q.spike_rate[neuron_pair.second].first;
+			if (q.spike_rate[neuron_pair.second].first > max_num_spike) {
+				max_num_spike = q.spike_rate[neuron_pair.second].first;
 				max_spike_id = cnt;
 			}
 			cnt ++;
 		}
+	std::cout << std::endl;
 	//initialize the model
-	for (auto &neuron: neuron_list) {
-		neuron.setInputRate(0, true);
-		neuron.setInputRate(0, false);
-	}
+	//for (auto &neuron: neuron_list) {
+	//	neuron.setInputRate(0, true);
+	//	neuron.setInputRate(0, false);
+	//}
 	
 	return max_spike_id;
 }

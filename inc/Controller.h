@@ -14,18 +14,21 @@ class Controller {
 			std::string model_name;
 			std::vector <float> input_matrix;
 			int output_val;
+			time_t time_stamp;
+
 			PayloadMatrix(
 				//std::vector <std::vector <std::vector <float> > > &weight,
 				std::string model_name,
 				std::vector <float> &input_matrix, 
-				int output_val):
+				int output_val,
+				time_t time_stamp):
 				//weight(weight),
 				model_name(model_name),
 				input_matrix(input_matrix),
-				output_val(output_val){}
+				output_val(output_val),
+				time_stamp(time_stamp){}
 			
-			PayloadMatrix(const PayloadMatrix &pl): model_name(pl.model_name), input_matrix(pl.input_matrix), output_val(pl.output_val) 
-			{};
+			PayloadMatrix(const PayloadMatrix &pl): model_name(pl.model_name), input_matrix(pl.input_matrix), output_val(pl.output_val), time_stamp(pl.time_stamp) {}
 
 			
 			//PayloadMatrix& operator=(const PayloadMatrix&) = delete;

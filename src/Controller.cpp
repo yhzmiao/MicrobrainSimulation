@@ -15,6 +15,7 @@
 #include "MessageQueue.h"
 #include "NetworkModel.h"
 #include "Controller.h"
+#include "Strategy.h"
 
 
 void senderFunc(int msg_id, std::string& model_name, std::string& dataset_name, int count, MessageQueue &msg_que) {
@@ -26,7 +27,7 @@ void senderFunc(int msg_id, std::string& model_name, std::string& dataset_name, 
 		std::vector <float> input_matrix = network_input.getInputMatrix();
 		int output_val = network_input.getOutput();
 		// tuple weight, input, output
-		Controller::PayloadMatrix payload(model_name, input_matrix, output_val);
+		Controller::PayloadMatrix payload(model_name, input_matrix, output_val, clock());
 		/*std::cout << "sender" << msg_id << " " << i << std::endl;
 		for (int i = 0; i < 64; ++ i)
 			std::cout << payload.weight[0][0][i] << " ";
@@ -43,8 +44,89 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 	std::unordered_map<std::string, int>::iterator it;
 	model_list.reserve(num_sender);
 
+	int total_query = num_sender * count;
+	std::vector <int> rest_query(num_sender, count);
+
 	time_t begin_run, end_run;
 	int correct_cnt = 0, total_cnt = 0;
+
+	// create strategy and initilization
+	StrategyManager strategy_manager(new RoundRobinStrategy);
+	std::vector <QueryInformation> query_information_list(num_sender, QueryInformation());
+	std::vector <RunningTask> task_list(1, RunningTask(-1, 0));
+
+	std::vector<std::pair<int, int> > cluster_input_matrix;
+	std::vector<int> spike_time;
+	//std::vector <float> input_matrix;
+
+	// loop until finished all query
+	while (total_query) {
+		strategy_manager.getSchedule(query_information_list, task_list);
+		int q_id = task_list[task_list.size() - 1].query_id;
+		QueryInformation &q = query_information_list[q_id];
+		float in_map = true;
+
+		if (q.model_id == -1 || (q.cluster_id == model_list[q.model_id].getClusterSize() && rest_query[q_id])) {
+			int model_id = 0, num_cluster = 0;
+
+			auto msg = msg_que_list[q_id].get();
+			auto& datamsg = dynamic_cast<DataMessage<Controller::PayloadMatrix>&>(*msg);
+
+			Controller::PayloadMatrix payload = datamsg.getPayload();
+			it = model_map.find(payload.model_name);
+
+			// if find this in map
+			if (it == model_map.end()) {
+				in_map = false;
+				model_id = model_list.size();
+				model_map.insert(make_pair(payload.model_name, model_id));
+				NetworkModel network_model(payload.model_name);
+
+				//todo: add some algorithm here
+				network_model.networkUnrolling(256);
+				std::vector<int> tmp_dim = {256, 64};
+				num_cluster = network_model.networkClustering(tmp_dim);
+
+				model_list.emplace_back(network_model);
+			}
+
+			else {
+				model_id = it->second;
+				num_cluster = model_list[model_id].getClusterSize();
+			}
+
+			q.setValue(model_id, 0, num_cluster, payload.output_val, payload.time_stamp, model_list[model_id].getNeuronSize());
+			model_list[model_id].setInputMatrix(payload.input_matrix, q);
+		}
+
+		//std::cout << "here" << std::endl;
+
+		//int input_cnt = model_list[model_id].setInputMatrix(q);
+
+		microbrain.loadWeight(sim, model_list[q.model_id], q.model_id, q.cluster_id, in_map);
+		if (!in_map)
+			microbrain.saveWeightPointer(sim, q.model_id);
+		cluster_input_matrix = model_list[q.model_id].getInputMatrix(q);
+		spike_time = microbrain.testResult(sim, cluster_input_matrix, in, model_list[q.model_id].getRunningTime());
+
+		model_list[q.model_id].updateInput(q.cluster_id, spike_time, q);
+
+		q.update();
+		if (q.cluster_id == model_list[q.model_id].getClusterSize()) {
+			int test_result = model_list[q.model_id].getResult(q);
+			
+			std::cout << "Sender ID: " << q_id << std::endl ;
+			std::cout << "Expected Value: " << q.output_val << std::endl;
+			std::cout << "Output Value: " << test_result << std::endl;
+
+			rest_query[q_id] --;
+			total_query --;
+			if (!rest_query[q_id])
+				q.weight = -1;
+		}
+	}
+
+	/*
 	for (int i = 0; i < count; ++ i) {
 		std::cout << "Quest ID: " << i << std::endl;
 		for (int j = 0; j < num_sender; ++ j) {
@@ -69,12 +151,12 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 
 				model_list.emplace_back(network_model);
 				
-				/*
-				for (int cluster_id = 0; cluster_id < num_cluster; ++ cluster_id) {
-					loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
-					microbrain.saveWeightPointer(sim, model_id);
-				}
-				*/
+				
+				//for (int cluster_id = 0; cluster_id < num_cluster; ++ cluster_id) {
+				//	loading_time = microbrain.loadWeight(sim, model_list[model_id].getWeight());
+				//	microbrain.saveWeightPointer(sim, model_id);
+				//}
+				
 			}
 			else {
 				model_id = it->second;
@@ -126,6 +208,7 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 			//microbrain.recoverInput(sim, payload.input_matrix);
 		}
 	}
+	*/
 }
 
 Controller::Controller(int num_sender): num_sender(num_sender) {

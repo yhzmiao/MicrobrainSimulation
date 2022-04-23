@@ -250,10 +250,10 @@ void Microbrain::setupConnections(CARLsim &sim) {
 			input_to_layer1_in_all[i] = sim.connect(ginput_all[i], glayer1_all_in, "one-to-one", RangeWeight(0.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
 		}
 		*/
-		input_ex_to_layer1_ex_all[0] = sim.connect(ginput_all_ex[0], glayer1_all_ex, "one-to-one", RangeWeight(0.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
-		input_in_to_layer1_ex_all[0] = sim.connect(ginput_all_in[0], glayer1_all_ex, "one-to-one", RangeWeight(0.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
-		input_ex_to_layer1_in_all[0] = sim.connect(ginput_all_ex[0], glayer1_all_in, "one-to-one", RangeWeight(0.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
-		input_in_to_layer1_in_all[0] = sim.connect(ginput_all_in[0], glayer1_all_in, "one-to-one", RangeWeight(0.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
+		input_ex_to_layer1_ex_all[0] = sim.connect(ginput_all_ex[0], glayer1_all_ex, "one-to-one", RangeWeight(10.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
+		input_in_to_layer1_ex_all[0] = sim.connect(ginput_all_in[0], glayer1_all_ex, "one-to-one", RangeWeight(10.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
+		input_ex_to_layer1_in_all[0] = sim.connect(ginput_all_ex[0], glayer1_all_in, "one-to-one", RangeWeight(10.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
+		input_in_to_layer1_in_all[0] = sim.connect(ginput_all_in[0], glayer1_all_in, "one-to-one", RangeWeight(10.0f), 1.0f, RangeDelay(1), RadiusRF(-1), SYN_PLASTIC);
 		/*
 		input_to_layer1_ex.resize(NUM_NEURON_LAYER1);
 		input_to_layer1_in.resize(NUM_NEURON_LAYER1);
