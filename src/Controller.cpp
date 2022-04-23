@@ -92,7 +92,7 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 				if (!in_map)
 					microbrain.saveWeightPointer(sim, model_id);
 				cluster_input_matrix = model_list[model_id].getInputMatrix(cluster_id); // todo
-				microbrain.loadInput(sim, cluster_input_matrix);
+				//microbrain.loadInput(sim, cluster_input_matrix);
 				//std::cout << "Loaded input matrix!" << std::endl;
 
 				std::vector<int> spike_time = microbrain.testResult(sim, cluster_input_matrix, in, model_list[model_id].getRunningTime());
@@ -123,7 +123,7 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 			std::cout << "Running time: " << running_time << " (" << loading_time << " + " << 0.1 * num_cluster << " + " << running_time - loading_time - 0.1 << ")"<< std::endl;
 			std::cout << "Accuracy: " << correct_cnt << "/" << total_cnt << " (" << (double)correct_cnt / (double)total_cnt << ")" << std::endl;
 			std::cout << "==========================================================================" << std::endl;
-			microbrain.recoverInput(sim, payload.input_matrix);
+			//microbrain.recoverInput(sim, payload.input_matrix);
 		}
 	}
 }

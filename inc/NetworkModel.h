@@ -11,12 +11,12 @@
 #define RANDOM_TIME 500
 //#define RUN_TIME 400
 
-struct RunningTask {
+struct RunningTask{
 	int query_id;
 	time_t time_stamp;
 
 	RunningTask() {}
-	RunningTask(int query_id, time_t time_stamp): query_id(query_id), time_stamp(time_stamp){}
+	RunningTask(int query_id, time_t time_stamp): query_id(query_id), time_stamp(time_stamp) {}
 	RunningTask(const RunningTask &rt): query_id(rt.query_id), time_stamp(rt.time_stamp) {}
 };
 
@@ -28,7 +28,7 @@ struct QueryInformation{
 	std::vector <int> spike_rate;
 
 	QueryInformation() {}
-	QueryInformation(int model_id, int cluster_id, int weight, time_t time_stamp, std::vector <int> spike_rate): model_id(model_id), cluster_id(cluster_id), weight(weight), time_stamp(time_stamp), spike_rate(spike_rate){}
+	QueryInformation(int model_id, int cluster_id, int weight, time_t time_stamp, std::vector <int> spike_rate): model_id(model_id), cluster_id(cluster_id), weight(weight), time_stamp(time_stamp), spike_rate(spike_rate) {}
 	QueryInformation(const QueryInformation &qi): model_id(qi.model_id), cluster_id(qi.cluster_id), weight(qi.weight), time_stamp(qi.time_stamp), spike_rate(qi.spike_rate) {}
 };
 

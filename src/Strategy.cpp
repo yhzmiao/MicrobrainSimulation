@@ -1,6 +1,8 @@
 #include <random>
 #include <vector>
 #include <ctime>
+#include <fstream>
+#include <iostream>
 
 #include "Strategy.h"
 
@@ -13,7 +15,7 @@ void RoundRobinStrategy::schedulingAlgorithm(std::vector <QueryInformation> &que
 			break;
 	}
 
-	task_list.emplace_back(new RunningTask(target, clock()));
+	task_list.emplace_back(RunningTask(target, clock()));
 }
 
 void RandomStrategy::schedulingAlgorithm(std::vector <QueryInformation> &query_information_list, std::vector <RunningTask> &task_list) {
@@ -24,7 +26,7 @@ void RandomStrategy::schedulingAlgorithm(std::vector <QueryInformation> &query_i
 	while (query_information_list[target].weight <= 0)
 		target = ud(rd);
 	
-	task_list.emplace_back(new RunningTask(target, clock()));
+	task_list.emplace_back(RunningTask(target, clock()));
 }
 
 void WeightedRandomStrategy::schedulingAlgorithm(std::vector <QueryInformation> &query_information_list, std::vector <RunningTask> &task_list) {
@@ -44,7 +46,7 @@ void WeightedRandomStrategy::schedulingAlgorithm(std::vector <QueryInformation> 
 				break;
 		}
 	
-	task_list.emplace_back(new RunningTask(target, clock()));
+	task_list.emplace_back(RunningTask(target, clock()));
 }
 
 void FCFSStrategy::schedulingAlgorithm(std::vector <QueryInformation> &query_information_list, std::vector <RunningTask> &task_list) {
@@ -55,7 +57,7 @@ void FCFSStrategy::schedulingAlgorithm(std::vector <QueryInformation> &query_inf
 			if (target == -1 || query_information_list[target].time_stamp > query_information_list[i].time_stamp)
 				target = i;
 	
-	task_list.emplace_back(new RunningTask(target, clock()));
+	task_list.emplace_back(RunningTask(target, clock()));
 }
 
 void StrategyManager::getSchedule(std::vector <QueryInformation> &query_information_list, std::vector <RunningTask> &task_list) {
