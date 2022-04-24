@@ -20,12 +20,13 @@ std::vector<std::string> stringSplit(const std::string &str, const std::string &
 	return sub_string;
 }*/
 
-void QueryInformation::setValue(int m_id, int c_id, int w, int o_v, time_t ts, int spike_size) {
+void QueryInformation::setValue(int m_id, int c_id, int w, int o_v, time_t ts, bool im, int spike_size) {
 	model_id = m_id;
 	cluster_id = c_id;
 	weight = w;
 	output_val = o_v;
 	time_stamp = ts;
+	in_map = im;
 	spike_rate.resize(spike_size);
 	for(auto &s: spike_rate)
 		s = std::make_pair(0, 0);

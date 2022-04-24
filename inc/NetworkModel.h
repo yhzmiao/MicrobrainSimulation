@@ -26,6 +26,7 @@ struct QueryInformation{
 	int weight;
 	int output_val;
 	time_t time_stamp;
+	bool in_map;
 	//std::vector <float> input_matrix;
 	std::vector <std::pair<int, int>> spike_rate;
 
@@ -33,7 +34,7 @@ struct QueryInformation{
 	//QueryInformation(int model_id, int cluster_id, int weight, time_t time_stamp, std::vector <int> spike_rate): model_id(model_id), cluster_id(cluster_id), weight(weight), time_stamp(time_stamp), spike_rate(spike_rate) {}
 	//QueryInformation(const QueryInformation &qi): model_id(qi.model_id), cluster_id(qi.cluster_id), weight(qi.weight), time_stamp(qi.time_stamp), spike_rate(qi.spike_rate) {}
 
-	void setValue(int m_id, int c_id, int w, int o_v, time_t ts, int spike_size);
+	void setValue(int m_id, int c_id, int w, int o_v, time_t ts, bool im, int spike_size);
 	void update();
 };
 

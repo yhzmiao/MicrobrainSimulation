@@ -64,13 +64,15 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 		strategy_manager.getSchedule(query_information_list, task_list);
 		int q_id = task_list[task_list.size() - 1].query_id;
 		QueryInformation &q = query_information_list[q_id];
-		float in_map = true;
+		std::cout << "Execution on sender " << q_id << std::endl;
 
 		if (q.model_id == -1 || (q.cluster_id == model_list[q.model_id].getClusterSize() && rest_query[q_id])) {
 			int model_id = 0, num_cluster = 0;
 
 			auto msg = msg_que_list[q_id].get();
 			auto& datamsg = dynamic_cast<DataMessage<Controller::PayloadMatrix>&>(*msg);
+			
+			float in_map = true;
 
 			Controller::PayloadMatrix payload = datamsg.getPayload();
 			it = model_map.find(payload.model_name);
@@ -95,16 +97,17 @@ void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que
 				num_cluster = model_list[model_id].getClusterSize();
 			}
 
-			q.setValue(model_id, 0, num_cluster, payload.output_val, payload.time_stamp, model_list[model_id].getNeuronSize());
+			q.setValue(model_id, 0, num_cluster, payload.output_val, payload.time_stamp, in_map, model_list[model_id].getNeuronSize());
 			model_list[model_id].setInputMatrix(payload.input_matrix, q);
+			
+			std::cout << "Setup sender information!" << std::endl;
 		}
 
-		//std::cout << "here" << std::endl;
 
 		//int input_cnt = model_list[model_id].setInputMatrix(q);
-
-		microbrain.loadWeight(sim, model_list[q.model_id], q.model_id, q.cluster_id, in_map);
-		if (!in_map)
+		//std::cout << q.model_id << " " << q.cluster_id << std::endl;
+		microbrain.loadWeight(sim, model_list[q.model_id], q.model_id, q.cluster_id, q.in_map);
+		if (!q.in_map)
 			microbrain.saveWeightPointer(sim, q.model_id);
 		cluster_input_matrix = model_list[q.model_id].getInputMatrix(q);
 		spike_time = microbrain.testResult(sim, cluster_input_matrix, in, model_list[q.model_id].getRunningTime());
