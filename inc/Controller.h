@@ -7,7 +7,7 @@ class Controller {
 		Controller(int num_sender);
 		~Controller() = default;
 
-		void run(std::vector<std::string> &model_name, std::vector<std::string> &dataset_name, int count, Microbrain &microbrain, CARLsim &sim, PoissonRate &in);
+		void run(std::vector<std::string> &model_name, std::vector<std::string> &dataset_name, int count, Microbrain &microbrain, CARLsim &sim, PoissonRate &in, std::vector<int> &run_time, int task_id);
 
 		struct PayloadMatrix {
 			//std::vector <std::vector <std::vector <float> > > weight;
@@ -43,6 +43,6 @@ class Controller {
 };
 
 void senderFunc(int msg_id, std::string &model_name, std::string &dataset_name, int count, MessageQueue &msg_que);
-void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que_list, Microbrain &microbrain, CARLsim &sim, PoissonRate &in);
+void receiverFunc(int num_sender, int count, std::vector <MessageQueue> &msg_que_list, Microbrain &microbrain, CARLsim &sim, PoissonRate &in, std::vector<int> &run_time, int task_id);
 
 #endif

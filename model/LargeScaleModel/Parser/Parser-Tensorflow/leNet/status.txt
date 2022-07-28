@@ -1,8 +1,0 @@
-[Status]
-done = 1
-error = 0
-
-[Info]
-name = DISCO
-email = ab3586@drexel.edu
-

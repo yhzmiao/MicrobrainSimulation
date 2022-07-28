@@ -5,6 +5,7 @@
 #include <map>
 #include <queue>
 #include <ctime>
+#include <random>
 
 #define ITER_TIME 1
 #define RECLUSTER_TIME 10
@@ -25,6 +26,7 @@ struct QueryInformation{
 	int cluster_id;
 	int weight;
 	int output_val;
+	int run_time;
 	time_t time_stamp;
 	bool in_map;
 	//std::vector <float> input_matrix;
@@ -34,8 +36,9 @@ struct QueryInformation{
 	//QueryInformation(int model_id, int cluster_id, int weight, time_t time_stamp, std::vector <int> spike_rate): model_id(model_id), cluster_id(cluster_id), weight(weight), time_stamp(time_stamp), spike_rate(spike_rate) {}
 	//QueryInformation(const QueryInformation &qi): model_id(qi.model_id), cluster_id(qi.cluster_id), weight(qi.weight), time_stamp(qi.time_stamp), spike_rate(qi.spike_rate) {}
 
-	void setValue(int m_id, int c_id, int w, int o_v, time_t ts, bool im, int spike_size);
+	void setValue(int m_id, int c_id, int w, int o_v, int rt, time_t ts, bool im, int spike_size);
 	void update();
+	void update_ts(time_t ts);
 };
 
 class Neuron {
@@ -78,7 +81,7 @@ class SNN {
 
 class NetworkModel {
 	public:
-		NetworkModel(std::string model_name);
+		NetworkModel(std::string model_name, int ls_rt = 100);
 		//NetworkModel(const NetworkModel &nm);
 		~NetworkModel() = default;
 
@@ -90,7 +93,7 @@ class NetworkModel {
 
 		void clusteringUpdateSet(std::set<int> &input_set, std::set<int> &output_set);
 		void ClusteringRemoveDummy(std::set<int> &input_set);
-		std::vector<std::pair<int, int>> getCluster(std::vector<std::set<int> >& neuron_set_list, std::vector<int>& dim);
+		std::vector<std::pair<int, int>> getCluster(std::vector<std::set<int> >& neuron_set_list, std::vector<int>& dim, std::default_random_engine &rd);
 
 		std::vector<Neuron> getNeuronList();
 		std::vector<std::pair<int, int> >& getCluster(int cluster_id);
@@ -102,8 +105,11 @@ class NetworkModel {
 		int setInputMatrix(std::vector<float>& input_matrix, QueryInformation &q);
 		std::vector<std::pair<int, int> > getInputMatrix(QueryInformation &q);
 		void updateInput(int cluster_id, std::vector<int>& spike_time, QueryInformation &q);
-		int getResult(QueryInformation &q);
+		std::pair<int, int> getResult(QueryInformation &q);
+		std::pair<double, double> getUtilization();
 		int getRunningTime();
+
+		std::string getModelName();
 
 	private:
 		bool large_scale;
@@ -112,6 +118,7 @@ class NetworkModel {
 
 		std::string model_name;
 		std::vector <int> dim;
+		std::vector <int> mb_dim;
 		std::vector <std::vector <std::vector <float> > > weight; // [0,1] i j
 
 		std::vector <Neuron> neuron_list;
@@ -140,17 +147,4 @@ class NetworkInput {
 };
 
 #endif 
-
-
-
-
-
-
-
-
-
-
-
-
-
 

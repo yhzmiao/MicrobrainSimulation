@@ -21,7 +21,7 @@ class Microbrain {
 
 		void loadWeight(CARLsim &sim, std::string &model_name, std::vector<int> &dim);
 		double loadWeight(CARLsim &sim, std::vector <std::vector <std::vector <float> > > &weight);
-		double loadWeight(CARLsim &sim, NetworkModel &network_model, int model_id, int cluster_id, bool in_map);
+		double loadWeight(CARLsim &sim, NetworkModel &network_model, int model_id, int cluster_id, bool &in_map);
 
 		void saveWeightPointer(CARLsim &sim, int model_id);
 
@@ -136,6 +136,8 @@ class Microbrain {
 		bool single_neuron_group;
 
 		// spike monitor
+		SpikeMonitor * result_monitor_layer1_ex;
+		SpikeMonitor * result_monitor_layer1_in;
 		SpikeMonitor * result_monitor_layer2_ex;
 		SpikeMonitor * result_monitor_layer2_in;
 		SpikeMonitor * result_monitor_layer3;

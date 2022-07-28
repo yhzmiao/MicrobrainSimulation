@@ -13,6 +13,11 @@ class RoundRobinStrategy : public StrategyInterface {
 		void schedulingAlgorithm(std::vector <QueryInformation> &query_information_list, std::vector <RunningTask> &task_list) override;
 };
 
+class HRRSStrategy : public StrategyInterface {
+	public:
+		void schedulingAlgorithm(std::vector <QueryInformation> &query_information_list, std::vector <RunningTask> &task_list) override;
+};
+
 class RandomStrategy : public StrategyInterface {
 	public:
 		void schedulingAlgorithm(std::vector <QueryInformation> &query_information_list, std::vector <RunningTask> &task_list) override;

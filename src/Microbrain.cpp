@@ -191,6 +191,8 @@ void Microbrain::setupNeurons(CARLsim &sim) {
 		grid_layer3_all = Grid3D(NUM_NEURON_LAYER3, 1, 1);
 		glayer3_all = sim.createGroupLIF("layer3_all", grid_layer3_all, EXCITATORY_NEURON, 0, CPU_CORES);
 		sim.setNeuronParametersLIF(glayer3_all, 1, 0, 1.0f, 0.0f);
+		result_monitor_layer1_ex = sim.setSpikeMonitor(glayer1_all_ex, "DEFAULT");
+		result_monitor_layer1_in = sim.setSpikeMonitor(glayer1_all_in, "DEFAULT");
 		result_monitor_layer2_ex = sim.setSpikeMonitor(glayer2_all_ex, "DEFAULT");
 		result_monitor_layer2_in = sim.setSpikeMonitor(glayer2_all_in, "DEFAULT");
 		result_monitor_layer3 = sim.setSpikeMonitor(glayer3_all, "DEFAULT");
@@ -486,14 +488,19 @@ double Microbrain::loadWeight(CARLsim &sim, std::vector <std::vector <std::vecto
 	return ret_time;
 }
 
-double Microbrain::loadWeight(CARLsim &sim, NetworkModel &network_model, int model_id, int cluster_id, bool in_map) {
+double Microbrain::loadWeight(CARLsim &sim, NetworkModel &network_model, int model_id, int cluster_id, bool &in_map) {
 	//std::cout << "Start Loading!" << std::endl;
 	time_t begin_load, end_load;
 	double ret_time;
 	begin_load = clock();
+	
+	if (weight_pointer_list.size() <= model_id)
+		weight_pointer_list.resize(model_id + 1);
 
 	// already load in map
-	if (in_map) {
+	//std::cout << weight_pointer_list[model_id].size() << " " << cluster_id << std::endl;
+	if (weight_pointer_list[model_id].size() > cluster_id) {
+		in_map = true;
 		float *tmp_pointer;
 		tmp_pointer = new float[weight_size];
 		memcpy(tmp_pointer, weight_pointer_list[model_id][cluster_id], sizeof(float) * weight_size);
@@ -547,6 +554,7 @@ double Microbrain::loadWeight(CARLsim &sim, NetworkModel &network_model, int mod
 	}
 	// not in map
 	else {
+		in_map = false;
 		std::vector <std::vector <std::vector<float> > > weight;
 		// setup weight metrix for microbrain
 		network_model.setClusterWeight(cluster_id, weight);
@@ -590,8 +598,6 @@ void Microbrain::saveWeightPointer(CARLsim &sim, int model_id) {
 
 	weight_size = pointer_pair.second;
 	*/
-	if (weight_pointer_list.size() <= model_id)
-		weight_pointer_list.resize(model_id + 1);
 	
 	weight_pointer_list[model_id].emplace_back(weight_pointer);
 	std::cout << "Saved Weight!!" << std::endl;
@@ -718,6 +724,8 @@ void Microbrain::recoverInput(CARLsim &sim, std::vector <float> &input_matrix) {
 }
 
 std::vector<int> Microbrain::testResult(CARLsim &sim, std::vector<std::pair<int, int> > input_rate, PoissonRate &in, int run_time, float input_cnt) {
+	result_monitor_layer1_ex->startRecording();
+	result_monitor_layer1_in->startRecording();
 	result_monitor_layer2_ex->startRecording();
 	result_monitor_layer2_in->startRecording();
 	result_monitor_layer3->startRecording();
@@ -736,10 +744,14 @@ std::vector<int> Microbrain::testResult(CARLsim &sim, std::vector<std::pair<int,
 	sim.setSpikeRate(ginput_all_ex[0], &in);
 	sim.runNetwork(0, 5);
 	
+	result_monitor_layer1_ex->stopRecording();
+	result_monitor_layer1_in->stopRecording();
 	result_monitor_layer2_ex->stopRecording();
 	result_monitor_layer2_in->stopRecording();
 	result_monitor_layer3->stopRecording();
 
+	std::vector < std::vector <int> > result_vector_1_ex = result_monitor_layer1_ex->getSpikeVector2D();
+	std::vector < std::vector <int> > result_vector_1_in = result_monitor_layer1_in->getSpikeVector2D();
 	std::vector < std::vector <int> > result_vector_2_ex = result_monitor_layer2_ex->getSpikeVector2D();
 	std::vector < std::vector <int> > result_vector_2_in = result_monitor_layer2_in->getSpikeVector2D();
 	std::vector < std::vector <int> > result_vector_3 = result_monitor_layer3->getSpikeVector2D();
@@ -757,6 +769,14 @@ std::vector<int> Microbrain::testResult(CARLsim &sim, std::vector<std::pair<int,
 	std::cout << std::endl;
 	for (auto &result: result_vector_3)
 		spike_time.push_back(result.size());
+	
+	int total_spike_transformed = 0;
+	for (auto &result: result_vector_1_ex)
+		total_spike_transformed += result.size();
+	for (auto &result: result_vector_1_in)
+		total_spike_transformed += result.size();
+
+	spike_time.push_back(total_spike_transformed);
 	/*
 	int max_num_spike = 0, max_spike_id;
 	std::cout << "Output Spike";

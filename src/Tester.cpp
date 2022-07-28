@@ -8,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <carlsim.h>
+#include <ctime>
 
 #include "Message.h"
 #include "MessageQueue.h"
@@ -92,4 +93,70 @@ void testClustering(std::string model_name, int num_connection, std::vector<int>
 
     int num_cluster = nm.networkClustering(dim);
     std::cout << "Total number of clusters: "<< num_cluster << std::endl;
+}
+
+void testAlgorithms(std::string model_name) {
+    time_t begin_unroll, end_unroll, begin_cluster = 0, end_cluster = 0;
+    int size_arr[5] = {64, 128, 256, 512, 1024}, num_neuron_before, num_neuron_after, num_cluster = -1;
+    std::ofstream ofs("results/Task2.out", std::ios::app);
+
+
+    for (auto size: size_arr) {
+        NetworkModel nm(model_name);
+        num_neuron_before = nm.getNeuronSize();
+        std::cout << model_name << " " << size << std::endl;
+        std::cout << "Unrolling!" << std::endl;
+
+        begin_unroll = clock();
+        nm.networkUnrolling(size);
+        end_unroll = clock();
+
+        num_neuron_after = nm.getNeuronSize();
+
+        std::cout << "Clustering!" << std::endl;
+
+        std::pair <double, double> utilization = std::make_pair(-1, -1);
+        
+        // 64 6000
+        // 128 8000
+        bool to_cluster = true;
+        if (size == 64 && num_neuron_after > 15000)
+            to_cluster = false;
+        if (size == 128 && num_neuron_after > 8000)
+            to_cluster = false;
+        if (to_cluster) {
+            std::vector<int> dim = {size, size / 4};
+            begin_cluster = clock();
+            num_cluster = nm.networkClustering(dim);
+            end_cluster = clock();
+            utilization = nm.getUtilization();
+        }
+
+        ofs << model_name << " " << size << " " << (double)(end_unroll - begin_unroll) / CLOCKS_PER_SEC << " " << num_neuron_before << " " << num_neuron_after << " " << num_neuron_after - num_neuron_before << " " << (double)(end_cluster - begin_cluster) / CLOCKS_PER_SEC << " " << num_cluster << " " << utilization.first << std::endl;  //" " << utilization.second << std::endl;
+    }
+
+    ofs.close();
+}
+
+void setupNames(std::vector<std::string> &dataset_name, std::vector<std::string> &model_name, std::vector<int> &run_time, int num_controller, int task_id) {
+    if (task_id == 4) {
+        dataset_name.resize(num_controller, dataset_name[0]);
+        model_name.resize(num_controller, model_name[0]);
+        run_time.resize(num_controller, run_time[0]);
+        return;
+    }
+
+    std::vector<std::string> d_name = {"MNIST_16", "MNIST_16", "MNIST_32", "MNIST_32", "FashionMNIST", "SVHN"};
+    std::vector<std::string> m_name = {"MNIST_negative", "MNIST_negative_2", "MNIST_largescale_3", "MNIST_largescale_3_2", "FashionMNIST", "SVHN"};
+    std::vector<int> r_time = {100, 200, 400, 400, 400, 400};
+
+    dataset_name.resize(num_controller);
+    model_name.resize(num_controller);
+    run_time.resize(num_controller);
+
+    for (int i = 0; i < num_controller; ++ i) {
+        dataset_name[i] = d_name[i % 6];
+        model_name[i] = m_name[i % 6];
+        run_time[i] = r_time[i % 6];
+    }
 }

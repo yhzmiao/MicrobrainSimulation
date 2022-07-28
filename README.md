@@ -1,2 +1,2 @@
 # Microbrain Simulation
-System support for microbrain
+Concurrent execution of spiking neural networks on neuromorphic hardware

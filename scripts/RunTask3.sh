@@ -1,0 +1,10 @@
+#./MicrobrainSimulation -t 3 -r 100 -d MNIST_16 -m MNIST_negative -l 1000
+#./MicrobrainSimulation -t 3 -r 200 -d MNIST_16 -m MNIST_negative -l 1000
+#./MicrobrainSimulation -t 3 -r 400 -d MNIST_32 -m MNIST_largescale_2 -l 1000
+#./MicrobrainSimulation -t 3 -r 400 -d MNIST_32 -m MNIST_largescale_3 -l 1000
+#./MicrobrainSimulation -t 3 -r 400 -d MNIST_32 -m MNIST_largescale_3_2 -l 1000
+#./MicrobrainSimulation -t 3 -r 400 -d MNIST_32 -m MNIST_largescale_4 -l 1000
+#./MicrobrainSimulation -t 3 -r 400 -d FashionMNIST -m FashionMNIST -l 1000
+#./MicrobrainSimulation -t 3 -r 400 -d SVHN -m SVHN -l 1000
+./MicrobrainSimulation -t 3 -r 400 -d CIFAR10 -m CIFAR10 -l 1000
+#./MicrobrainSimulation -t 3 -r 400 -d EuroSAT_64 -m EuroSAT -l 1000
